@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CourseDuck - 选择职业</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <div class="brand">
+          <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
+          <div>
+            <h1>CourseDuck <span class="sub">步骤 2/2：选择职业</span></h1>
+          </div>
+        </div>
+        <div class="nav">
+          <a class="btn" href="./info.html">返回专业选择</a>
+          <a class="btn danger" href="./login.html">退出/切换账号</a>
+        </div>
+      </header>
+
+      <section class="panel centered">
+          <h2>确认目标职业</h2>
+          <p class="hint">职业选项会根据你已确认的专业动态展示。</p>
+          <div class="field">
+            <label>已选专业</label>
+            <div class="chip" id="majorNameChip">-</div>
+          </div>
+          <div class="field">
+            <label for="career">职业方向</label>
+            <select id="career">
+              <option value="">请选择职业方向</option>
+            </select>
+          </div>
+          <form id="careerForm" action="./recommend.html" method="get">
+            <input type="hidden" name="majorId" id="majorIdHidden" value="" />
+            <input type="hidden" name="careerId" id="careerIdHidden" value="" />
+            <div class="row" style="margin-top:12px; justify-content:flex-end">
+              <button class="btn primary" type="submit" id="confirmCareerBtn">确认职业并进入课程推荐</button>
+            </div>
+          </form>
+          <div class="item" style="margin-top:12px;">
+          <h2>提示</h2>
+          <p class="hint">确认职业后将直接跳转到推荐页，展示课程搜索、技能树和推荐结果。</p>
+          </div>
+      </section>
+    </div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const setText = (el, text) => { if (el) el.textContent = text ?? ""; };
+      function toast(msg) { window.alert(msg); }
+      function readProfile() {
+        try { return JSON.parse(localStorage.getItem("courseduck.profile") || "{}"); } catch { return {}; }
+      }
+      function writeProfile(v) {
+        localStorage.setItem("courseduck.profile", JSON.stringify(v));
+      }
+
+      const MAJOR_NAMES = {
+        economics: "经济学",
+        fin: "金融学",
+        intl_business: "国际商务",
+        accounting: "专业会计学",
+        fe: "金融工程",
+        mkt_ib: "市场营销与国际商务",
+        bdm: "大数据管理与应用",
+      };
+      const profile = readProfile() || { majorId: "", careerId: "" };
+      const queryMajorId = new URLSearchParams(window.location.search).get("majorId") || "";
+      const majorId = queryMajorId || profile.majorId || "";
+      if (!majorId) {
+        window.location.href = "./info.html";
+      }
+
+      const majorNameChip = $("#majorNameChip");
+      const careerSel = $("#career");
+      const careerForm = $("#careerForm");
+      const majorIdHidden = $("#majorIdHidden");
+      const careerIdHidden = $("#careerIdHidden");
+      const CAREER_FALLBACK = {
+        fin: [
+          { id: "career_ib_analyst", name: "投资银行分析师" },
+          { id: "career_securities_trader", name: "证券公司交易员" },
+          { id: "career_bank_mt", name: "银行总行管培生" },
+          { id: "career_investment_manager", name: "投资经理" },
+        ],
+        economics: [
+          { id: "career_mgmt_consultant", name: "管理咨询顾问" },
+          { id: "career_strategy_analyst", name: "互联网大厂战略分析师" },
+          { id: "career_macro_researcher", name: "券商宏观研究员" },
+          { id: "career_regulatory_analyst", name: "金融监管机构经济分析岗" },
+        ],
+        accounting: [
+          { id: "career_big4_auditor", name: "四大会计师事务所审计师" },
+          { id: "career_corporate_finance", name: "企业财务" },
+          { id: "career_tax_advisor", name: "税务师" },
+          { id: "career_accountant", name: "会计师" },
+        ],
+        fe: [
+          { id: "career_quant_trader", name: "量化交易员" },
+          { id: "career_fin_model_dev", name: "金融模型开发" },
+          { id: "career_fintech_algo", name: "金融科技算法工程师" },
+        ],
+        bdm: [
+          { id: "career_bi_analyst", name: "商业数据分析师" },
+          { id: "career_data_ops", name: "互联网数据运营" },
+          { id: "career_digital_analyst", name: "企业数字化分析师" },
+          { id: "career_market_data_specialist", name: "市场数据分析专员" },
+        ],
+        intl_business: [
+          { id: "career_cross_border_business", name: "跨境商务" },
+          { id: "career_brand_pr", name: "品牌公关" },
+          { id: "career_foreign_market_specialist", name: "外企市场部专员" },
+          { id: "career_internet_marketing_ops", name: "互联网市场策划/运营" },
+        ],
+        mkt_ib: [
+          { id: "career_cross_border_business", name: "跨境商务" },
+          { id: "career_brand_pr", name: "品牌公关" },
+          { id: "career_foreign_market_specialist", name: "外企市场部专员" },
+          { id: "career_internet_marketing_ops", name: "互联网市场策划/运营" },
+        ],
+      };
+
+      setText(majorNameChip, MAJOR_NAMES[majorId] || majorId || "-");
+      majorIdHidden.value = majorId;
+
+      const careers = CAREER_FALLBACK[majorId] || [];
+      careerSel.innerHTML =
+        `<option value="">请选择职业方向</option>` +
+        careers.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
+      if (profile.careerId && careers.some((c) => c.id === profile.careerId)) {
+        careerSel.value = profile.careerId;
+      }
+      careerIdHidden.value = careerSel.value || "";
+
+      careerSel.addEventListener("change", () => {
+        careerIdHidden.value = careerSel.value || "";
+      });
+
+      careerForm.addEventListener("submit", (e) => {
+        if (!careerSel.value) {
+          e.preventDefault();
+          toast("请选择职业后再进入课程推荐页。");
+          return;
+        }
+        writeProfile({ majorId, careerId: careerSel.value });
+        careerIdHidden.value = careerSel.value;
+      });
+    </script>
+  </body>
+</html>
+

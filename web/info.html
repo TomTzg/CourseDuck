@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CourseDuck - 选择专业</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <div class="brand">
+          <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
+          <div>
+            <h1>CourseDuck <span class="sub">步骤 1/2：选择专业</span></h1>
+          </div>
+        </div>
+        <div class="nav">
+          <span class="chip" id="userChip">未登录</span>
+          <a class="btn" href="./login.html">退出/切换账号</a>
+        </div>
+      </header>
+
+      <section class="panel centered">
+          <h2>先确认你的专业</h2>
+          <p class="hint">确认后将跳转到职业选择页，再进行课程推荐。</p>
+
+          <form id="majorForm" action="./career.html" method="get">
+            <div class="field">
+              <label for="major">专业</label>
+              <select id="major" name="majorId">
+                <option value="">请选择专业</option>
+                <option value="economics">经济学</option>
+                <option value="fin">金融学</option>
+                <option value="intl_business">国际商务</option>
+                <option value="accounting">专业会计学</option>
+                <option value="fe">金融工程</option>
+                <option value="mkt_ib">市场营销与国际商务</option>
+                <option value="bdm">大数据管理与应用</option>
+              </select>
+            </div>
+            <div class="row" style="margin-top:12px; justify-content:flex-end">
+              <button class="btn primary" id="confirmMajorBtn" type="submit">确认专业并选择职业</button>
+            </div>
+          </form>
+      </section>
+    </div>
+
+    <script type="module">
+      import { getMajors } from "./assets/api.js";
+      import { $, setText, toast, readSession, readProfile, writeProfile } from "./assets/ui.js";
+
+      const session = readSession();
+      const userChip = $("#userChip");
+      userChip.textContent = session?.user?.email ? `已登录：${session.user.email}` : "未登录";
+
+      const majorSel = $("#major");
+      const majorForm = $("#majorForm");
+      const kpiMajor = $("#kpiMajor");
+      const kpiStatus = $("#kpiStatus");
+      const profile = readProfile() || { majorId: "", careerId: "" };
+      let allMajors = [];
+
+      function syncUi() {
+        const name = allMajors.find((x) => x.id === majorSel.value)?.name || "-";
+        setText(kpiMajor, name);
+        setText(kpiStatus, majorSel.value ? "已选择" : "待确认");
+      }
+
+      majorForm.addEventListener("submit", (e) => {
+        if (!majorSel.value) {
+          e.preventDefault();
+          toast({ title: "请先选择专业", message: "选择后才能进入职业选择页。" });
+          return;
+        }
+        writeProfile({ majorId: majorSel.value, careerId: "" });
+      });
+
+      majorSel.addEventListener("change", () => {
+        writeProfile({ majorId: majorSel.value, careerId: "" });
+        syncUi();
+      });
+
+      (async function init() {
+        const { items } = await getMajors();
+        allMajors = Array.isArray(items) ? items : [];
+        if (allMajors.length > 0) {
+          majorSel.innerHTML =
+            `<option value="">请选择专业</option>` +
+            allMajors.map((m) => `<option value="${m.id}">${m.name}</option>`).join("");
+          if (profile.majorId && allMajors.some((m) => m.id === profile.majorId)) {
+            majorSel.value = profile.majorId;
+          }
+        }
+        syncUi();
+      })().catch((err) => toast({ title: "加载失败", message: String(err?.message || err) }));
+    </script>
+  </body>
+</html>
+

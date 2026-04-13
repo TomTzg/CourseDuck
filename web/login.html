@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CourseDuck - 登录</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <div class="brand">
+          <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
+          <div>
+            <h1>CourseDuck <span class="sub">课程推荐原型机</span></h1>
+          </div>
+        </div>
+        <div class="nav">
+          <span class="chip">仅原型：接口已预留</span>
+          <a class="btn" href="./info.html" title="跳过登录（原型）">进入原型</a>
+        </div>
+      </header>
+
+      <section class="panel centered">
+          <h2>校园邮箱登录</h2>
+          <p class="hint">
+            目标：确保只有本校学生可使用。仅限cuhk学生登录，数据加密保障。
+            该页面已预留登录接口：<span style="font-family:var(--mono)">POST /api/auth/campus-email/login</span>
+          </p>
+
+          <form id="loginForm">
+            <div class="two">
+              <div class="field">
+                <label for="studentId">学号</label>
+                <div class="row" style="flex-wrap:nowrap">
+                  <input class="input" id="studentId" name="studentId" type="text" placeholder="请输入学号" autocomplete="username" required />
+                  <span class="chip" style="white-space:nowrap">@link.edu.cn</span>
+                </div>
+              </div>
+              <div class="field">
+                <label for="code">验证码（原型占位）</label>
+                <input class="input" id="code" name="code" type="text" placeholder="123456" inputmode="numeric" minlength="4" maxlength="8" required />
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:12px; justify-content:space-between">
+              <div class="row">
+                <button class="btn" id="sendCodeBtn" type="button">发送验证码（占位）</button>
+                <span class="chip" id="sendHint">未发送</span>
+              </div>
+              <div class="row">
+                <button class="btn primary" id="loginBtn" type="submit">登录</button>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:10px; justify-content:flex-end">
+              <button class="btn" type="button" id="agreementBtn">用户协议</button>
+              <button class="btn" type="button" id="privacyBtn">隐私政策</button>
+            </div>
+          </form>
+
+          <div class="kpi">
+            <div class="card">
+              <div class="v">第一步</div>
+              <div class="k">校园邮箱登录</div>
+            </div>
+            <div class="card">
+              <div class="v">第二步</div>
+              <div class="k">专业与职业选择</div>
+            </div>
+            <div class="card">
+              <div class="v">第三步</div>
+              <div class="k">课程推荐展示</div>
+            </div>
+          </div>
+      </section>
+
+      <div class="footer">CourseDuck Prototype · UI/接口占位可直接对接后端</div>
+    </div>
+    <div class="modal-overlay" id="policyModalOverlay" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle">
+        <div class="modal-header">
+          <h3 class="modal-title" id="policyModalTitle">协议标题</h3>
+          <button class="btn" type="button" id="policyModalCloseTop">关闭</button>
+        </div>
+        <div class="modal-body" id="policyModalBody">
+          协议内容占位。
+        </div>
+        <div class="modal-footer">
+          <button class="btn primary" type="button" id="policyModalCloseBottom">我知道了</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { loginWithCampusEmail } from "./assets/api.js";
+      import { $, toast, writeSession } from "./assets/ui.js";
+
+      const form = $("#loginForm");
+      const studentIdEl = $("#studentId");
+      const codeEl = $("#code");
+      const sendBtn = $("#sendCodeBtn");
+      const sendHint = $("#sendHint");
+      const loginBtn = $("#loginBtn");
+      const agreementBtn = $("#agreementBtn");
+      const privacyBtn = $("#privacyBtn");
+      const policyModalOverlay = $("#policyModalOverlay");
+      const policyModalTitle = $("#policyModalTitle");
+      const policyModalBody = $("#policyModalBody");
+      const policyModalCloseTop = $("#policyModalCloseTop");
+      const policyModalCloseBottom = $("#policyModalCloseBottom");
+
+      function openPolicyModal(type) {
+        if (type === "agreement") {
+          policyModalTitle.textContent = "用户协议";
+          policyModalBody.textContent = "用户协议内容预留中：后续可接入完整协议文本或 markdown 渲染。";
+        } else {
+          policyModalTitle.textContent = "隐私政策";
+          policyModalBody.textContent = "隐私政策内容预留中：后续可接入完整隐私条款与数据说明。";
+        }
+        policyModalOverlay.classList.add("show");
+        policyModalOverlay.setAttribute("aria-hidden", "false");
+      }
+      function closePolicyModal() {
+        policyModalOverlay.classList.remove("show");
+        policyModalOverlay.setAttribute("aria-hidden", "true");
+      }
+
+      sendBtn.addEventListener("click", () => {
+        const studentId = (studentIdEl.value || "").trim();
+        if (!studentId) {
+          toast({ title: "请先填写学号", message: "示例：12345678" });
+          return;
+        }
+        sendHint.textContent = "已发送（原型占位）";
+        toast({
+          title: "验证码已发送（占位）",
+          message: "当前原型不实际发送邮件。后端接入后可实现 /api/auth/campus-email/send-code。",
+        });
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const studentId = (studentIdEl.value || "").trim();
+        const email = `${studentId}@link.edu.cn`;
+        const code = (codeEl.value || "").trim();
+        if (!studentId || !code) return;
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = "登录中…";
+        try {
+          const res = await loginWithCampusEmail({ email, code });
+          writeSession(res);
+          toast({ title: "登录成功", message: `欢迎：${res.user?.email || email}` });
+          setTimeout(() => (window.location.href = "./info.html"), 450);
+        } catch (err) {
+          toast({ title: "登录失败", message: String(err?.message || err) });
+        } finally {
+          loginBtn.disabled = false;
+          loginBtn.textContent = "登录";
+        }
+      });
+
+      agreementBtn.addEventListener("click", () => openPolicyModal("agreement"));
+      privacyBtn.addEventListener("click", () => openPolicyModal("privacy"));
+      policyModalCloseTop.addEventListener("click", closePolicyModal);
+      policyModalCloseBottom.addEventListener("click", closePolicyModal);
+      policyModalOverlay.addEventListener("click", (e) => {
+        if (e.target === policyModalOverlay) closePolicyModal();
+      });
+    </script>
+  </body>
+</html>
+

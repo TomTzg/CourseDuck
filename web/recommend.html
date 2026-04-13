@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CourseDuck - 推荐</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <div class="brand">
+          <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
+          <div>
+            <h1>CourseDuck <span class="sub">推荐（技能树 + 课程）</span></h1>
+          </div>
+        </div>
+        <div class="nav">
+          <span class="chip" id="profileChip">未选择</span>
+          <a class="btn" href="./career.html">返回职业选择</a>
+          <a class="btn danger" href="./login.html">退出/切换账号</a>
+        </div>
+      </header>
+
+      <div class="recommend-layout">
+        <div class="recommend-left">
+          <section class="panel">
+            <h2>技能树展示</h2>
+            <p class="hint">
+              技能树用于解释“为什么推荐这些课”。后端可根据学生已修课程/测评结果计算 <span style="font-family:var(--mono)">have/gaps</span>。
+              本页预留接口：<span style="font-family:var(--mono)">GET /api/skill-tree</span>、<span style="font-family:var(--mono)">POST /api/recommendations</span>
+            </p>
+            <div class="tree" id="tree"></div>
+          </section>
+
+          <section class="panel">
+            <h2>专业课程库</h2>
+            <p class="hint">勾选你已经上过的课程，系统会在推荐中标记“已修”。</p>
+            <div class="list" id="courseList" style="margin-top:10px"></div>
+          </section>
+        </div>
+
+        <aside class="panel recommend-right">
+          <h2>课程推荐</h2>
+          <p class="hint">推荐结果与技能树同排展示，点击课程详情跳转到详情页查看。</p>
+          <div class="row" style="justify-content:space-between; margin-bottom:10px">
+            <span class="chip" id="reqMeta">requestId: -</span>
+            <button class="btn primary" id="regenBtn" type="button">重新生成</button>
+          </div>
+          <div class="list" id="recoList"></div>
+        </aside>
+      </div>
+
+      <div class="footer">建议：后端接入后，把推荐结果落库，支持“收藏/反馈/不喜欢/原因”闭环优化</div>
+    </div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const profile = (() => {
+        let p = {};
+        try { p = JSON.parse(localStorage.getItem("courseduck.profile") || "{}"); } catch {}
+        const q = new URLSearchParams(window.location.search);
+        if (!p.majorId && q.get("majorId")) p.majorId = q.get("majorId");
+        if (!p.careerId && q.get("careerId")) p.careerId = q.get("careerId");
+        return p || {};
+      })();
+      if (!profile.majorId || !profile.careerId) {
+        window.location.href = profile.majorId ? "./career.html" : "./info.html";
+      }
+
+      const profileChip = $("#profileChip");
+      profileChip.textContent = `majorId=${profile.majorId || "-"} · careerId=${profile.careerId || "-"}`;
+
+      const CAREER_PROFILES = {
+        career_ib_analyst: { skills:["企业估值","财务建模","并购重组","尽职调查","投融资方案设计","财报分析"], courses:["FIN2010 Financial Management","FIN3080 Investment Analysis and Portfolio Management","FIN4210 Corporate Finance","FIN4220 Advanced Corporate Finance","FIN4050 Mergers and Acquisitions","ACT4213 Financial Statement Analysis","FIN4230 Value Investing"] },
+        career_securities_trader: { skills:["金融市场交易","衍生品操作","风险控制","投资组合管理","行情研判"], courses:["FIN3080 Investment Analysis and Portfolio Management","FIN4110 Options and Futures","FIN3030 Financial Institutions and Markets","RMS4060 Risk Management with Derivatives","FIN4080 Behavioral Finance","FIN4120 Fixed Income Securities Analysis"] },
+        career_bank_mt: { skills:["商业银行运营","信贷管理","金融合规","客户管理","宏观政策解读"], courses:["FIN3030 Financial Institutions and Markets","FIN3060 Banking","FIN2010 Financial Management","FIN4210 Corporate Finance","ECO3410 Economics of Money and Financial Institutions","ACT3181 Credit Rating and Risk Management"] },
+        career_investment_manager: { skills:["项目尽调","估值建模","投后管理","VC/PE运作","商业计划书研判"], courses:["FIN2010 Financial Management","FIN3330 Alternative Investments","FIN3340 Financial Innovations and Alternative Investment","FIN4210 Corporate Finance","FIN4230 Value Investing","ACT4213 Financial Statement Analysis"] },
+        career_mgmt_consultant: { skills:["行业研究","战略规划","商业分析","数据建模","方案撰写","案例分析"], courses:["ECO2011 Basic Microeconomics","ECO3011 Intermediate Microeconomic Theory","ECO3160 Game Theory and Business Strategy","ECO3480 Industrial Organization and Public Policy","ECO3211 Quantitative Methods for Policy Evaluation","ECO3110 Behavioral Economics"] },
+        career_strategy_analyst: { skills:["宏观趋势研判","用户与市场分析","商业模型分析","数据驱动决策"], courses:["ECO2021 Basic Macroeconomics","ECO3021 Intermediate Macroeconomic Theory","ECO3620 Data Analysis and Macroeconomic Policies","ECO3150 Digital Economics","ECO3110 Behavioral Economics"] },
+        career_macro_researcher: { skills:["宏观经济预测","政策分析","经济指标建模","行业周期判断"], courses:["ECO2021 Basic Macroeconomics","ECO3021 Intermediate Macroeconomic Theory","ECO3630 International Finance","ECO3410 Economics of Money and Financial Institutions","ECO3620 Data Analysis and Macroeconomic Policies","ECO3710 China Economy"] },
+        career_regulatory_analyst: { skills:["政策评估","经济统计","风险监测","合规分析","宏观审慎管理"], courses:["ECO3430 Public Finance","ECO4121 Intermediate Econometrics","ECO3230 Economic Analysis of Law and Human Behavior","ECO3410 Economics of Money and Financial Institutions","ECO4001 Environmental Economics and Policy"] },
+        career_big4_auditor: { skills:["财务审计","内控测试","审计准则应用","风险评估","底稿编制"], courses:["ACT2111 Introductory Financial Accounting","ACT3011 Intermediate Financial Accounting","ACT4131 Auditing","ACT4231 Internal Auditing and Risk Management","ACT3141 Accounting Information Systems","ACT3131 Accounting Theory"] },
+        career_corporate_finance: { skills:["账务处理","成本核算","预算管理","财务报表编制","资金管理"], courses:["ACT2121 Introductory Management Accounting","ACT3011 Intermediate Financial Accounting","ACT3311 Accounting Forecasting and Analysis","ACT4213 Financial Statement Analysis","ACT4121 Strategic Management Accounting"] },
+        career_tax_advisor: { skills:["税务合规","税务筹划","中国税制","国际税收","转让定价"], courses:["ACT2111 Introductory Financial Accounting","ACT4262 China Taxation","ACT4263 International Taxation","ACT3153 Business and Company Law"] },
+        career_accountant: { skills:["会计核算","报表编制","内控管理","财务分析","会计准则执行"], courses:["ACT2111 Introductory Financial Accounting","ACT3011 Intermediate Financial Accounting","ACT3131 Accounting Theory","ACT3141 Accounting Information Systems","ACT4213 Financial Statement Analysis"] },
+        career_quant_trader: { skills:["量化策略开发","回测","程序化交易","风险模型","统计套利"], courses:["FIN2210 Probability for Finance","FIN4110 Options and Futures","FMA4200 Financial Data Analysis","ECO3090 Machine Learning for Financial Economics","MAT4500 Stochastics Differential Equations","STA4003 Time Series"] },
+        career_fin_model_dev: { skills:["衍生品定价","风险模型","数值计算","蒙特卡洛模拟","量化建模"], courses:["FMA4800 Financial Computation","FIN4110 Options and Futures","STA4001 Stochastic Process","FMA4200 Financial Data Analysis","FIN4231 Asset Pricing","MAT3280 Probability Theory"] },
+        career_fintech_algo: { skills:["机器学习","数据分析","金融算法","大数据处理","模型部署"], courses:["DDA3020 Machine Learning","ACT4311 Data Mining for Accounting Analytics","FIN3210 Fintech Theory and Practice","FMA4200 Financial Data Analysis","FIN3090 AI Applications in Finance","STA4003 Time Series"] },
+        career_bi_analyst: { skills:["数据清洗","统计建模","可视化","商业洞察","报告输出"], courses:["DMS3003 Data Analytics and Decision Making","ACT4321 Accounting Database and Data Visualization","MKT3310 Marketing Analytics","ACT4311 Data Mining for Accounting Analytics","STA3010 Regression Analysis","STA3020 Statistical Inference"] },
+        career_data_ops: { skills:["用户数据分析","增长运营","数据监控","业务指标优化"], courses:["MKT3320 Digital Consumer Analytics","MKT3310 Marketing Analytics","DMS3003 Data Analytics and Decision Making","ECO3080 Machine Learning for Business","ACT4321 Accounting Database and Data Visualization"] },
+        career_digital_analyst: { skills:["流程数字化","数据治理","业务分析","系统需求","数字化转型"], courses:["ACT3141 Accounting Information Systems","DMS3003 Data Analytics and Decision Making","ACT4321 Accounting Database and Data Visualization","MIS2051 IT in Business Applications"] },
+        career_market_data_specialist: { skills:["市场调研","用户画像","营销效果分析","数据报表","竞品分析"], courses:["MKT4120 Marketing Research","MKT3310 Marketing Analytics","MKT3320 Digital Consumer Analytics","DMS3003 Data Analytics and Decision Making","MKT3060 Quantitative Marketing Methods in the AI Age"] },
+        career_cross_border_business: { skills:["国际贸易","跨境运营","海关合规","海外市场拓展","供应链管理"], courses:["ECO3610 International Trade","MGT3250 International Business","MKT3050 Global Marketing","DMS2030 Operations Management","ECO3630 International Finance","MGT4250 Cross-Cultural Communication and Negotiation"] },
+        career_brand_pr: { skills:["品牌管理","媒体沟通","危机公关","活动策划","舆情管理"], courses:["MKT3030 Integrated Marketing Communication","MKT4110 Strategic Brand Management","MGT4250 Cross-Cultural Communication and Negotiation"] },
+        career_foreign_market_specialist: { skills:["市场调研","营销策划","品牌推广","跨文化沟通","渠道管理"], courses:["MKT2010 Marketing Management","MKT3050 Global Marketing","MKT3020 Consumer Behavior","MGT4250 Cross-Cultural Communication and Negotiation","MGT3250 International Business"] },
+        career_internet_marketing_ops: { skills:["用户增长","内容策划","活动运营","渠道投放","数据复盘"], courses:["MKT2010 Marketing Management","MKT3320 Digital Consumer Analytics","MKT3020 Consumer Behavior","MKT3310 Marketing Analytics","MKT3080 Strategic Media Planning"] },
+      };
+
+      const data = CAREER_PROFILES[profile.careerId] || { skills: [], courses: [] };
+      const COURSE_DETAILS_RAW = [
+        "FIN2010|财务管理基础|投融资、资本成本、现金流",
+        "FIN2210|金融概率论|分布、期望、收敛、中心极限定理",
+        "FIN3030|金融机构与市场|银行、监管、金融市场",
+        "FIN3080|投资组合、股票估值、量化策略|投资组合、股票估值、量化策略",
+        "FIN3210|金融科技|大数据、区块链、AI在金融中应用",
+        "FIN3340|风投/私募股权|初创估值、退出机制",
+        "FIN4080|行为金融|认知偏差、市场异象、投资者行为",
+        "FIN4110|期权期货|衍生品定价、套利、对冲策略",
+        "FIN4120|固定收益|债券定价、久期、利率风险",
+        "FIN4210|公司金融|资本结构、股利政策、资本预算",
+        "FIN4220|高级公司金融|企业估值、并购、重组",
+        "FIN4230|价值投资|安全边际、自由现金流、护城河分析",
+        "FIN4231|资产定价|因子模型、消费定价、市场效率",
+        "FMA4200|金融数据分析|回归、时间序列、风险管理",
+        "FMA4800|金融计算|蒙特卡洛、二叉树、数值定价",
+        "RMS4060|衍生品风险管理|利率/信用/市场风险",
+        "ECO2011|微观基础|供需、消费者、厂商、市场均衡",
+        "ECO2021|宏观基础|GDP、通胀、失业、货币财政政策",
+        "ECO3011|中级微观|效用、生产、垄断、寡头",
+        "ECO3021|中级宏观|增长模型、经济周期、IS-LM",
+        "ECO3080|商业机器学习|监督/无监督学习、模型评估",
+        "ECO3090|金融机器学习|时序、信用风险、交易策略",
+        "ECO3110|行为经济学|前景理论、时间偏好、社会偏好",
+        "ECO3121|计量经济学|回归、假设检验、Stata实操",
+        "ECO3160|博弈论|纳什均衡、序贯博弈、议价",
+        "ECO3211|政策评估|DID、IV、RDD因果推断",
+        "ECO3410|货币银行|央行、货币政策、金融体系",
+        "ECO3430|公共财政|外部性、税收、社保、收入分配",
+        "ECO3480|产业组织|市场势力、反垄断、竞争政策",
+        "ECO3610|国际贸易|比较优势、要素禀赋、贸易政策",
+        "ECO3620|宏观政策数据分析|Excel/Python可视化",
+        "ECO3630|国际金融|汇率、国际收支、资本流动",
+        "ECO3710|中国经济|制度、增长、金融、创新、反腐",
+        "ECO4121|高级计量|时间序列、ARMA、GARCH、VAR",
+        "ACT2111|财务会计入门|报表、借贷、会计循环",
+        "ACT2121|管理会计|成本核算、本量利、预算、决策",
+        "ACT3011|中级财务会计|收入、租赁、所得税、养老金、每股收益",
+        "ACT3131|会计理论|信息不对称、有效市场、估值、契约理论",
+        "ACT3141|会计信息系统|业务流程、内控、金蝶系统、大数据",
+        "ACT3153|商法/公司法|合同、公司治理、并购、合规",
+        "ACT3154|商法/公司法|合同、公司治理、并购、合规",
+        "ACT3181|信用评级与风险管理|信用风险度量、案例",
+        "ACT3311|会计预测与分析|盈余质量、破产预测、舞弊分析",
+        "ACT3321|文本分析|NLP、爬虫、情感分析、主题模型",
+        "ACT4121|战略管理会计|管理控制、转移定价、绩效",
+        "ACT4131|审计学|审计流程、内控、循环审计、审计报告、职业道德",
+        "ACT4213|财务报表分析|估值、盈利、增长、现金流、AI基本面分析",
+        "ACT4231|内部审计与风险管理|公司治理、风险识别、合规",
+        "ACT4252|企业重组与破产|并购、估值、LBO、SPAC",
+        "ACT4262|中国税制|个税、企业所得税、增值税、消费税、转让定价",
+        "ACT4263|国际税收|税收协定、转让定价、跨境筹划、反避税",
+        "ACT4311|会计数据挖掘|Python、预测模型、文本分析、聚类",
+        "ACT4321|会计数据库与可视化|SQL、Stata、Tableau",
+        "MAT1001|一元微积分|极限、导数、积分、微分方程",
+        "MAT2040|线性代数|矩阵、向量空间、特征值、正交、SVD",
+        "MAT3280|概率论|测度、期望、大数定律、中心极限定理",
+        "STA2001|概率统计I|分布、估计、检验、回归",
+        "STA2002|概率统计II|分布、估计、检验、回归",
+        "STA3020|统计推断|充分统计量、似然、贝叶斯、假设检验",
+        "STA4001|随机过程|马尔可夫链、泊松过程、布朗运动、排队论",
+        "STA4003|时间序列|ARIMA、GARCH、预测、季节性",
+        "DDA3020|机器学习|监督/无监督、神经网络、决策树",
+        "MAT4500|随机微分方程|伊藤公式、鞅、衍生品定价",
+        "DMS2030|运营管理|流程、库存、供应链、质量管理",
+        "DMS3003|数据分析与决策|回归、优化、模拟",
+        "MIS2051|商业信息系统|数据库、SQL、数据挖掘、网络分析",
+        "MIS3011|高级商业AI|大模型、提示工程、AI项目全流程",
+        "MKT3310|营销分析|聚类、回归、分类、客户价值",
+        "MKT3320|数字消费者分析|RFM、逻辑回归、推荐系统、文本挖掘",
+        "MKT3060|量化营销|A/B测试、回归、DID、因果推断",
+        "MGT2020|管理学原理|计划、组织、领导、控制",
+        "MGT3250|国际商务|全球化、进入模式、跨国公司、全球-本地平衡",
+        "MGT4250|跨文化沟通与谈判|跨文化沟通与谈判",
+        "MKT2010|营销管理|STP、4P、品牌、渠道、推广",
+        "MKT3020|消费者行为|感知、学习、态度、群体、文化",
+        "MKT3030|整合营销传播|公关、数字媒体、内容策略",
+        "MKT4110|战略品牌管理|品牌资产、定位、延伸",
+        "MKT4120|营销调研|问卷、抽样、数据分析、报告",
+      ];
+      const COURSE_DETAILS = COURSE_DETAILS_RAW.reduce((acc, line) => {
+        const [code, intro, outline] = line.split("|");
+        acc[code] = { intro, outline };
+        return acc;
+      }, {});
+      const treeEl = $("#tree");
+      const courseListEl = $("#courseList");
+      const recoList = $("#recoList");
+      const reqMeta = $("#reqMeta");
+      const regenBtn = $("#regenBtn");
+      const takenKey = `courseduck.taken.${profile.majorId || "na"}.${profile.careerId || "na"}`;
+      const takenSet = (() => {
+        try {
+          const arr = JSON.parse(localStorage.getItem(takenKey) || "[]");
+          return new Set(Array.isArray(arr) ? arr : []);
+        } catch {
+          return new Set();
+        }
+      })();
+
+      function nodeHtml(name, required) {
+        const half = Math.max(1, Math.floor(required.length / 2));
+        const have = required.slice(0, half).map((s) => `<span class="pill have">${s}</span>`).join("");
+        const gaps = required.slice(half).map((s) => `<span class="pill gap">${s}</span>`).join("");
+        return `<div class="node"><div class="head"><div style="font-weight:800; font-size:13px">${name}</div><span class="badge warn">存在缺口</span></div><div class="skills">${have}${gaps}</div></div>`;
+      }
+
+      function chunks(arr, size) {
+        const out = [];
+        for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+        return out;
+      }
+
+      function parseCourse(text) {
+        const sp = text.indexOf(" ");
+        const code = sp > 0 ? text.slice(0, sp) : text;
+        return { id: code, code, title: text, level: "进阶", durationHours: 16, tags: [code.slice(0, 3), "SME"] };
+      }
+
+      const allCourses = (data.courses || []).map(parseCourse);
+
+      function courseItemHtml(c) {
+        const tags = (c.tags || []).map((t) => `<span class="pill have">${t}</span>`).join("");
+        const checked = takenSet.has(c.id) ? "checked" : "";
+        return `<div class="item"><div class="t"><h3>${c.title}</h3><span class="badge warn">${c.level}</span></div><div class="meta"><div>来源：SME Course Catalog · 时长：${c.durationHours} 小时</div><div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px">${tags}</div><div class="row" style="margin-top:10px;justify-content:space-between"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-course-id="${c.id}" ${checked} /> 已上过这门课</label><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div></div>`;
+      }
+
+      function recoHtml(c, i) {
+        const pct = 95 - i * 2;
+        const takenBadge = takenSet.has(c.id) ? `<span class="badge">已修</span>` : "";
+        return `<div class="item"><div class="t"><h3>${c.title}</h3><div class="row"><span class="badge ok">匹配度 ${pct}%</span>${takenBadge}</div></div><div class="meta"><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div>`;
+      }
+
+      function renderTree() {
+        const s = data.skills || [];
+        if (s.length === 0) {
+          treeEl.innerHTML = `<div class="item"><div class="meta">暂无技能树数据</div></div>`;
+          return;
+        }
+        const parts = chunks(s, Math.max(2, Math.ceil(s.length / 3)));
+        treeEl.innerHTML = parts.map((p, i) => nodeHtml(`核心技能组 ${i + 1}`, p)).join("");
+      }
+
+      function renderCourses() {
+        courseListEl.innerHTML = allCourses.length ? allCourses.map(courseItemHtml).join("") : `<div class="item"><div class="meta">没有找到课程</div></div>`;
+      }
+
+      function renderReco() {
+        reqMeta.textContent = `requestId: local_${Date.now()}`;
+        recoList.innerHTML = allCourses.slice(0, 8).map(recoHtml).join("") || `<div class="item"><div class="meta">暂无推荐</div></div>`;
+      }
+
+      courseListEl.addEventListener("change", (e) => {
+        const el = e.target.closest("input[type='checkbox'][data-course-id]");
+        if (!el) return;
+        const id = el.getAttribute("data-course-id");
+        if (el.checked) takenSet.add(id); else takenSet.delete(id);
+        localStorage.setItem(takenKey, JSON.stringify(Array.from(takenSet)));
+        renderReco();
+      });
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-detail-code]");
+        if (!btn) return;
+        localStorage.setItem("courseduck.courseDetails", JSON.stringify(COURSE_DETAILS));
+        const code = btn.getAttribute("data-detail-code");
+        window.location.href = `./course-detail.html?code=${encodeURIComponent(code)}`;
+      });
+      regenBtn.addEventListener("click", () => renderReco());
+
+      renderTree();
+      renderCourses();
+      renderReco();
+    </script>
+  </body>
+</html>
+

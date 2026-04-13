@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CourseDuck - 课程详情</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="topbar">
+        <div class="brand">
+          <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
+          <div>
+            <h1>CourseDuck <span class="sub">课程详情</span></h1>
+          </div>
+        </div>
+        <div class="nav">
+          <button class="btn" id="backBtn" type="button">返回课程推荐页</button>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section class="panel">
+          <h2 id="courseCode">课程代码</h2>
+          <p class="hint" id="courseIntro">简介：-</p>
+          <div class="item">
+            <div class="t"><h3>课程大纲</h3></div>
+            <div class="meta" id="courseOutline">-</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code") || "";
+      let details = {};
+      try { details = JSON.parse(localStorage.getItem("courseduck.courseDetails") || "{}"); } catch {}
+
+      const detail = details[code] || { intro: "暂无该课程简介", outline: "暂无该课程大纲" };
+      document.getElementById("courseCode").textContent = code || "课程代码";
+      document.getElementById("courseIntro").textContent = `简介：${detail.intro}`;
+      document.getElementById("courseOutline").textContent = detail.outline;
+
+      document.getElementById("backBtn").addEventListener("click", () => {
+        if (history.length > 1) history.back();
+        else window.location.href = "./recommend.html";
+      });
+    </script>
+  </body>
+</html>
+
