@@ -366,12 +366,18 @@
         return out;
       }
 
+      const FOUR_CHOOSE_ONE_CODES = new Set(["ECO2021", "DMS2030", "MIS2051", "MGT2020", "MKT2010"]);
+      const BASIC_CODES = new Set(["FIN2010", "ECO2011", "ACT2111", "MAT1001"]);
+      function classifyCourseLevel(code) {
+        if (FOUR_CHOOSE_ONE_CODES.has(code)) return "四选一";
+        if (BASIC_CODES.has(code)) return "基础课";
+        return "进阶课";
+      }
       function parseCourse(item) {
         const text = typeof item === "string" ? item : item.text;
-        const type = typeof item === "string" ? "进阶课" : item.type;
         const sp = text.indexOf(" ");
         const code = sp > 0 ? text.slice(0, sp) : text;
-        return { id: code, code, title: text, level: type, tags: [code.slice(0, 3)] };
+        return { id: code, code, title: text, level: classifyCourseLevel(code), tags: [code.slice(0, 3)] };
       }
 
       const allCourses = (data.courses || []).map(parseCourse);

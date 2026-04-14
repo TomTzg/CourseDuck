@@ -55,3 +55,58 @@ npx serve -l 5173
 
 ### Github： https://github.com/TomTzg/CourseDuck
 ### 产品网址：snazzy-conkies-2c1fd2.netlify.app
+
+### push命令
+1. 看改了什么
+cd <file location>
+git status
+
+2. 加入暂存区
+全部加入：
+git add -A
+或只加某些文件：
+git add web/career.html
+
+3. 提交到本地
+git commit -m "<更新详情>"
+若提示 “nothing to commit”，说明没有可提交的变更。
+
+4. 推到 GitHub
+git push origin main
+若默认分支已跟踪远程，也可以直接：
+git push
+
+
+### clone命令
+安装 Git（并确保能用 GitHub）
+克隆仓库
+git clone https://github.com/你的用户名/你的仓库名.git
+cd 你的仓库名】
+
+新建分支（推荐，不要直接在 main 改）
+git checkout -b feat/my-change
+
+修改代码后提交
+git add .
+git commit -m "描述这次改动"
+
+推送到 GitHub
+git push -u origin feat/my-change
+
+到 GitHub 页面发起 Pull Request 合并到 main
+
+后续每次继续开发
+进入项目后先同步最新代码：
+git pull
+
+
+如果你就想直接改 main（不推荐，但可以）
+git checkout main
+git pull origin main
+# 改代码后
+git add .
+git commit -m "update: xxx"
+git push origin main
+
+
+看提交历史：git log --oneline --graph --decorate -20

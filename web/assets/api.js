@@ -274,6 +274,54 @@ const CAREER_PROFILES = {
       "MKT3080 Strategic Media Planning",
     ],
   },
+  career_supply_chain_ops: {
+    skills: ["全链协同", "成本管控", "交付管理", "供应链风险应对"],
+    courses: [
+      "DMS2030 Operations Management",
+      "MGT2020 Principles of Management",
+      "DMS3003 Data Analytics and Decision Making",
+      "MIS2051 IT in Business Applications",
+      "SCM3010 Supply Chain Management",
+    ],
+  },
+  career_plan_production_plan: {
+    skills: ["需求预测", "产能计划", "库存优化", "交期管控", "生产排程"],
+    courses: [
+      "DMS2030 Operations Management",
+      "FIN2210 Probability for Finance",
+      "STA4003 Time Series",
+      "ECO3080 Machine Learning for Business",
+      "SCM3020 Demand and Inventory Planning",
+    ],
+  },
+  career_procurement_buyer_trade: {
+    skills: ["供应商开发", "商务议价", "成本控制", "质量管控", "交付管理"],
+    courses: [
+      "DMS2030 Operations Management",
+      "ACT3153 Business and Company Law",
+      "ECO3610 International Trade",
+      "SCM3030 Strategic Procurement and Supply",
+    ],
+  },
+  career_warehouse_logistics: {
+    skills: ["仓储规划", "物流调度", "配送优化", "WMS系统", "成本管控"],
+    courses: [
+      "DMS2030 Operations Management",
+      "DMS3003 Data Analytics and Decision Making",
+      "MIS2051 IT in Business Applications",
+      "LGS3010 Logistics and Distribution Management",
+    ],
+  },
+  career_supply_chain_data_analysis: {
+    skills: ["数据建模", "流程优化", "供应链仿真", "效率提升", "成本分析"],
+    courses: [
+      "STA2001 Probability and Statistics I",
+      "DMS2030 Operations Management",
+      "FMA4200 Financial Data Analysis",
+      "STA4003 Time Series",
+      "ACT4321 Accounting Database and Data Visualization",
+    ],
+  },
 };
 
 function parseCourseEntry(entry) {
@@ -363,6 +411,7 @@ const MOCK = {
     { id: "fe", name: "金融工程" },
     { id: "mkt_ib", name: "市场营销与国际商务" },
     { id: "bdm", name: "大数据管理与应用" },
+    { id: "supply_chain", name: "供应链管理" },
   ],
   careersByMajor: {
     economics: [
@@ -405,6 +454,13 @@ const MOCK = {
       { id: "career_brand_pr", name: "品牌公关" },
       { id: "career_foreign_market_specialist", name: "外企市场部专员" },
       { id: "career_internet_marketing_ops", name: "互联网市场策划/运营" },
+    ],
+    supply_chain: [
+      { id: "career_supply_chain_ops", name: "供应链/供应链运营" },
+      { id: "career_plan_production_plan", name: "计划/生产计划" },
+      { id: "career_procurement_buyer_trade", name: "采购/买手/贸易" },
+      { id: "career_warehouse_logistics", name: "仓储/物流" },
+      { id: "career_supply_chain_data_analysis", name: "供应链数据分析" },
     ],
   },
   courses: buildCourseCatalog(),
