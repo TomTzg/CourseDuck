@@ -2,12 +2,13 @@
 
 ### 页面
 - `login.html`：校园邮箱登录
-- `info.html`：步骤 1/2，选择并确认专业
-- `career.html`：步骤 2/2，根据专业选择并确认职业
-- `recommend.html`：课程搜索 + 技能树 + 课程推荐
+- `school.html`：步骤 2/3，选择并确认学院
+- `info.html`：步骤 1/3，选择并确认专业
+- `career.html`：步骤 3/3，根据专业选择并确认职业
+- `recommend.html`：技能树 + 课程推荐 + 课程详情
 
 ### 本地打开
-直接双击打开 HTML 也能看静态效果；但如果你要测试 `fetch` 到真实后端，建议起一个本地静态服务器（任选其一）：
+直接双击打开 HTML 也能看静态效果；但如果要测试 `fetch` 到真实后端，建议起一个本地静态服务器（任选其一）：
 
 ```bash
 # 方式 1：Python（安装了 Python 的话）
@@ -22,7 +23,7 @@ npx serve -l 5173
 然后访问：
 - `http://localhost:5173/web/login.html`
 
-### 生产部署（www.CourseDuck.com）
+### 生产部署（www.CourseDuck.com, 暂时没有这个DNS， 现已在Netlify部署）
 可以用任意静态托管平台（Vercel / Netlify / Cloudflare Pages）。
 
 推荐最短流程（Vercel）：
@@ -49,5 +50,7 @@ npx serve -l 5173
 - `GET /api/courses/library?majorId=...`
 - `GET /api/courses?majorId=...&careerId=...&q=...`
 - `POST /api/recommendations`（body: majorId, careerId）
-- `GET /api/skill-tree?careerId=...`
+- `GET /api/skill-tree?careerId=...`z
 
+### Github： https://github.com/TomTzg/CourseDuck
+### 产品网址：snazzy-conkies-2c1fd2.netlify.app
