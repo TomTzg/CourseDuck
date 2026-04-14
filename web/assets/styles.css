@@ -102,6 +102,36 @@ a{color:inherit}
   color:var(--muted);
 }
 
+/* 课程详情页：课程名称为正文大小，课程代码缩小与之对齐 */
+.field.field-course-code{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.course-name-val{
+  margin-top:2px;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--text);
+  font-weight:500;
+}
+
+.chip.course-code-chip{
+  display:inline-block;
+  width:fit-content;
+  min-width:min-content;
+  max-width:none;
+  box-sizing:border-box;
+  font-family:var(--mono);
+  font-size:14px;
+  font-weight:600;
+  line-height:1.4;
+  letter-spacing:0.02em;
+  color:var(--text);
+  padding:7px 11px;
+  white-space:nowrap;
+}
+
 .btn{
   border:1px solid var(--line);
   background:rgba(121,201,255,.12);

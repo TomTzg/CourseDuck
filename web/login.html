@@ -17,7 +17,7 @@
         </div>
         <div class="nav">
           <span class="chip">仅原型：接口已预留</span>
-          <a class="btn" href="./info.html" title="跳过登录（原型）">进入原型</a>
+          <a class="btn" href="./school.html" title="跳过登录（原型）">进入原型</a>
         </div>
       </header>
 
@@ -66,7 +66,7 @@
             </div>
             <div class="card">
               <div class="v">第二步</div>
-              <div class="k">专业与职业选择</div>
+              <div class="k">学院与专业/职业</div>
             </div>
             <div class="card">
               <div class="v">第三步</div>
@@ -152,7 +152,7 @@
           const res = await loginWithCampusEmail({ email, code });
           writeSession(res);
           toast({ title: "登录成功", message: `欢迎：${res.user?.email || email}` });
-          setTimeout(() => (window.location.href = "./info.html"), 450);
+          setTimeout(() => (window.location.href = "./school.html"), 450);
         } catch (err) {
           toast({ title: "登录失败", message: String(err?.message || err) });
         } finally {

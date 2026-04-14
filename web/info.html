@@ -12,11 +12,12 @@
         <div class="brand">
           <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
           <div>
-            <h1>CourseDuck <span class="sub">步骤 1/2：选择专业</span></h1>
+            <h1>CourseDuck <span class="sub">步骤 2/3：选择专业</span></h1>
           </div>
         </div>
         <div class="nav">
           <span class="chip" id="userChip">未登录</span>
+          <a class="btn" href="./school.html">返回学院选择</a>
           <a class="btn" href="./login.html">退出/切换账号</a>
         </div>
       </header>
@@ -24,8 +25,11 @@
       <section class="panel centered">
           <h2>先确认你的专业</h2>
           <p class="hint">确认后将跳转到职业选择页，再进行课程推荐。</p>
+          <p class="hint" id="smeScopeHint" style="display: none">
+            当前版本仅支持 <strong>SME</strong> 课程推荐；其他学院数据将在后续更新。
+          </p>
 
-          <form id="majorForm" action="./career.html" method="get">
+          <form id="majorForm" action="./career.html" method="get" novalidate>
             <div class="field">
               <label for="major">专业</label>
               <select id="major" name="majorId">
@@ -58,7 +62,22 @@
       const majorForm = $("#majorForm");
       const kpiMajor = $("#kpiMajor");
       const kpiStatus = $("#kpiStatus");
-      const profile = readProfile() || { majorId: "", careerId: "" };
+      const smeScopeHint = $("#smeScopeHint");
+
+      const SCHOOL_IDS = ["SME", "SSE", "SDS", "SAI", "HSS", "MUS", "MED"];
+      const qsSchool = new URLSearchParams(window.location.search).get("schoolId");
+      if (qsSchool && SCHOOL_IDS.includes(qsSchool)) {
+        writeProfile({ ...(readProfile() || {}), schoolId: qsSchool });
+        history.replaceState({}, "", window.location.pathname || "./info.html");
+      }
+      let profile = readProfile() || { majorId: "", careerId: "" };
+      if (!profile.schoolId || !SCHOOL_IDS.includes(profile.schoolId)) {
+        window.location.replace("./school.html");
+      }
+      if (profile.schoolId && profile.schoolId !== "SME") {
+        smeScopeHint.style.display = "block";
+      }
+
       let allMajors = [];
 
       function syncUi() {
@@ -67,17 +86,8 @@
         setText(kpiStatus, majorSel.value ? "已选择" : "待确认");
       }
 
-      majorForm.addEventListener("submit", (e) => {
-        if (!majorSel.value) {
-          e.preventDefault();
-          toast({ title: "请先选择专业", message: "选择后才能进入职业选择页。" });
-          return;
-        }
-        writeProfile({ majorId: majorSel.value, careerId: "" });
-      });
-
       majorSel.addEventListener("change", () => {
-        writeProfile({ majorId: majorSel.value, careerId: "" });
+        writeProfile({ ...(readProfile() || {}), majorId: majorSel.value, careerId: "" });
         syncUi();
       });
 
@@ -94,6 +104,36 @@
         }
         syncUi();
       })().catch((err) => toast({ title: "加载失败", message: String(err?.message || err) }));
+    </script>
+    <script>
+      /* 与学院页一致：普通脚本负责提交校验 + 写入 profile，不选专业则提示并拦截跳转 */
+      (function () {
+        var form = document.getElementById("majorForm");
+        var major = document.getElementById("major");
+        if (!form || !major) return;
+        function readProfile() {
+          try {
+            return JSON.parse(localStorage.getItem("courseduck.profile") || "{}");
+          } catch (e) {
+            return {};
+          }
+        }
+        function writeProfile(obj) {
+          localStorage.setItem("courseduck.profile", JSON.stringify(obj));
+        }
+        form.addEventListener("submit", function (e) {
+          var v = (major.value || "").trim();
+          if (!v) {
+            e.preventDefault();
+            window.alert("请先选择专业：请在下拉框中选择一项后，再点击「确认专业并选择职业」。");
+            return;
+          }
+          var p = readProfile();
+          p.majorId = v;
+          p.careerId = "";
+          writeProfile(p);
+        });
+      })();
     </script>
   </body>
 </html>

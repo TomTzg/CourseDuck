@@ -18,6 +18,7 @@
         <div class="nav">
           <span class="chip" id="profileChip">未选择</span>
           <a class="btn" href="./career.html">返回职业选择</a>
+          <a class="btn" href="./school.html">返回学院选择</a>
           <a class="btn danger" href="./login.html">退出/切换账号</a>
         </div>
       </header>
@@ -35,7 +36,7 @@
 
           <section class="panel">
             <h2>专业课程库</h2>
-            <p class="hint">勾选你已经上过的课程，系统会在推荐中标记“已修”。</p>
+            <p class="hint">勾选你已经上过的课程，系统会在推荐中标记“已修”。课程标签分为基础课、进阶课和四选一（只需选择一门或多门即可）。</p>
             <div class="list" id="courseList" style="margin-top:10px"></div>
           </section>
         </div>
@@ -54,6 +55,7 @@
       <div class="footer">建议：后端接入后，把推荐结果落库，支持“收藏/反馈/不喜欢/原因”闭环优化</div>
     </div>
 
+    <script src="./assets/course-catalog.js"></script>
     <script>
       const $ = (s) => document.querySelector(s);
       const profile = (() => {
@@ -64,125 +66,278 @@
         if (!p.careerId && q.get("careerId")) p.careerId = q.get("careerId");
         return p || {};
       })();
-      if (!profile.majorId || !profile.careerId) {
+      const SCHOOL_IDS = ["SME", "SSE", "SDS", "SAI", "HSS", "MUS", "MED"];
+      if (!profile.schoolId || !SCHOOL_IDS.includes(profile.schoolId)) {
+        window.location.href = "./school.html";
+      } else if (!profile.majorId || !profile.careerId) {
         window.location.href = profile.majorId ? "./career.html" : "./info.html";
       }
 
       const profileChip = $("#profileChip");
-      profileChip.textContent = `majorId=${profile.majorId || "-"} · careerId=${profile.careerId || "-"}`;
+      profileChip.textContent = `schoolId=${profile.schoolId || "-"} · majorId=${profile.majorId || "-"} · careerId=${profile.careerId || "-"}`;
 
-      const CAREER_PROFILES = {
-        career_ib_analyst: { skills:["企业估值","财务建模","并购重组","尽职调查","投融资方案设计","财报分析"], courses:["FIN2010 Financial Management","FIN3080 Investment Analysis and Portfolio Management","FIN4210 Corporate Finance","FIN4220 Advanced Corporate Finance","FIN4050 Mergers and Acquisitions","ACT4213 Financial Statement Analysis","FIN4230 Value Investing"] },
-        career_securities_trader: { skills:["金融市场交易","衍生品操作","风险控制","投资组合管理","行情研判"], courses:["FIN3080 Investment Analysis and Portfolio Management","FIN4110 Options and Futures","FIN3030 Financial Institutions and Markets","RMS4060 Risk Management with Derivatives","FIN4080 Behavioral Finance","FIN4120 Fixed Income Securities Analysis"] },
-        career_bank_mt: { skills:["商业银行运营","信贷管理","金融合规","客户管理","宏观政策解读"], courses:["FIN3030 Financial Institutions and Markets","FIN3060 Banking","FIN2010 Financial Management","FIN4210 Corporate Finance","ECO3410 Economics of Money and Financial Institutions","ACT3181 Credit Rating and Risk Management"] },
-        career_investment_manager: { skills:["项目尽调","估值建模","投后管理","VC/PE运作","商业计划书研判"], courses:["FIN2010 Financial Management","FIN3330 Alternative Investments","FIN3340 Financial Innovations and Alternative Investment","FIN4210 Corporate Finance","FIN4230 Value Investing","ACT4213 Financial Statement Analysis"] },
-        career_mgmt_consultant: { skills:["行业研究","战略规划","商业分析","数据建模","方案撰写","案例分析"], courses:["ECO2011 Basic Microeconomics","ECO3011 Intermediate Microeconomic Theory","ECO3160 Game Theory and Business Strategy","ECO3480 Industrial Organization and Public Policy","ECO3211 Quantitative Methods for Policy Evaluation","ECO3110 Behavioral Economics"] },
-        career_strategy_analyst: { skills:["宏观趋势研判","用户与市场分析","商业模型分析","数据驱动决策"], courses:["ECO2021 Basic Macroeconomics","ECO3021 Intermediate Macroeconomic Theory","ECO3620 Data Analysis and Macroeconomic Policies","ECO3150 Digital Economics","ECO3110 Behavioral Economics"] },
-        career_macro_researcher: { skills:["宏观经济预测","政策分析","经济指标建模","行业周期判断"], courses:["ECO2021 Basic Macroeconomics","ECO3021 Intermediate Macroeconomic Theory","ECO3630 International Finance","ECO3410 Economics of Money and Financial Institutions","ECO3620 Data Analysis and Macroeconomic Policies","ECO3710 China Economy"] },
-        career_regulatory_analyst: { skills:["政策评估","经济统计","风险监测","合规分析","宏观审慎管理"], courses:["ECO3430 Public Finance","ECO4121 Intermediate Econometrics","ECO3230 Economic Analysis of Law and Human Behavior","ECO3410 Economics of Money and Financial Institutions","ECO4001 Environmental Economics and Policy"] },
-        career_big4_auditor: { skills:["财务审计","内控测试","审计准则应用","风险评估","底稿编制"], courses:["ACT2111 Introductory Financial Accounting","ACT3011 Intermediate Financial Accounting","ACT4131 Auditing","ACT4231 Internal Auditing and Risk Management","ACT3141 Accounting Information Systems","ACT3131 Accounting Theory"] },
-        career_corporate_finance: { skills:["账务处理","成本核算","预算管理","财务报表编制","资金管理"], courses:["ACT2121 Introductory Management Accounting","ACT3011 Intermediate Financial Accounting","ACT3311 Accounting Forecasting and Analysis","ACT4213 Financial Statement Analysis","ACT4121 Strategic Management Accounting"] },
-        career_tax_advisor: { skills:["税务合规","税务筹划","中国税制","国际税收","转让定价"], courses:["ACT2111 Introductory Financial Accounting","ACT4262 China Taxation","ACT4263 International Taxation","ACT3153 Business and Company Law"] },
-        career_accountant: { skills:["会计核算","报表编制","内控管理","财务分析","会计准则执行"], courses:["ACT2111 Introductory Financial Accounting","ACT3011 Intermediate Financial Accounting","ACT3131 Accounting Theory","ACT3141 Accounting Information Systems","ACT4213 Financial Statement Analysis"] },
-        career_quant_trader: { skills:["量化策略开发","回测","程序化交易","风险模型","统计套利"], courses:["FIN2210 Probability for Finance","FIN4110 Options and Futures","FMA4200 Financial Data Analysis","ECO3090 Machine Learning for Financial Economics","MAT4500 Stochastics Differential Equations","STA4003 Time Series"] },
-        career_fin_model_dev: { skills:["衍生品定价","风险模型","数值计算","蒙特卡洛模拟","量化建模"], courses:["FMA4800 Financial Computation","FIN4110 Options and Futures","STA4001 Stochastic Process","FMA4200 Financial Data Analysis","FIN4231 Asset Pricing","MAT3280 Probability Theory"] },
-        career_fintech_algo: { skills:["机器学习","数据分析","金融算法","大数据处理","模型部署"], courses:["DDA3020 Machine Learning","ACT4311 Data Mining for Accounting Analytics","FIN3210 Fintech Theory and Practice","FMA4200 Financial Data Analysis","FIN3090 AI Applications in Finance","STA4003 Time Series"] },
-        career_bi_analyst: { skills:["数据清洗","统计建模","可视化","商业洞察","报告输出"], courses:["DMS3003 Data Analytics and Decision Making","ACT4321 Accounting Database and Data Visualization","MKT3310 Marketing Analytics","ACT4311 Data Mining for Accounting Analytics","STA3010 Regression Analysis","STA3020 Statistical Inference"] },
-        career_data_ops: { skills:["用户数据分析","增长运营","数据监控","业务指标优化"], courses:["MKT3320 Digital Consumer Analytics","MKT3310 Marketing Analytics","DMS3003 Data Analytics and Decision Making","ECO3080 Machine Learning for Business","ACT4321 Accounting Database and Data Visualization"] },
-        career_digital_analyst: { skills:["流程数字化","数据治理","业务分析","系统需求","数字化转型"], courses:["ACT3141 Accounting Information Systems","DMS3003 Data Analytics and Decision Making","ACT4321 Accounting Database and Data Visualization","MIS2051 IT in Business Applications"] },
-        career_market_data_specialist: { skills:["市场调研","用户画像","营销效果分析","数据报表","竞品分析"], courses:["MKT4120 Marketing Research","MKT3310 Marketing Analytics","MKT3320 Digital Consumer Analytics","DMS3003 Data Analytics and Decision Making","MKT3060 Quantitative Marketing Methods in the AI Age"] },
-        career_cross_border_business: { skills:["国际贸易","跨境运营","海关合规","海外市场拓展","供应链管理"], courses:["ECO3610 International Trade","MGT3250 International Business","MKT3050 Global Marketing","DMS2030 Operations Management","ECO3630 International Finance","MGT4250 Cross-Cultural Communication and Negotiation"] },
-        career_brand_pr: { skills:["品牌管理","媒体沟通","危机公关","活动策划","舆情管理"], courses:["MKT3030 Integrated Marketing Communication","MKT4110 Strategic Brand Management","MGT4250 Cross-Cultural Communication and Negotiation"] },
-        career_foreign_market_specialist: { skills:["市场调研","营销策划","品牌推广","跨文化沟通","渠道管理"], courses:["MKT2010 Marketing Management","MKT3050 Global Marketing","MKT3020 Consumer Behavior","MGT4250 Cross-Cultural Communication and Negotiation","MGT3250 International Business"] },
-        career_internet_marketing_ops: { skills:["用户增长","内容策划","活动运营","渠道投放","数据复盘"], courses:["MKT2010 Marketing Management","MKT3320 Digital Consumer Analytics","MKT3020 Consumer Behavior","MKT3310 Marketing Analytics","MKT3080 Strategic Media Planning"] },
+      const PROFILE_TEMPLATES = {
+        product_manager: {
+          skills: ["需求分析", "产品规划", "项目管理", "商业逻辑", "数据决策", "用户研究"],
+          courses: [
+            { text: "MGT2020 Principles of Management", type: "基础课" },
+            { text: "FIN2010 Financial Management", type: "基础课" },
+            { text: "DMS3003 Data Analytics and Decision Making", type: "四选一" },
+            { text: "MIS3011 Advanced AI for Business", type: "进阶课" },
+            { text: "MKT2010 Marketing Management", type: "进阶课" },
+          ],
+        },
+        game_planner: {
+          skills: ["系统设计", "数值策划", "用户体验", "项目管理", "逻辑分析"],
+          courses: [
+            { text: "MGT2020 Principles of Management", type: "基础课" },
+            { text: "DMS3003 Data Analytics and Decision Making", type: "四选一" },
+            { text: "ECO3080 Machine Learning for Business", type: "进阶课" },
+            { text: "MKT3020 Consumer Behavior", type: "进阶课" },
+          ],
+        },
+        ops_content: {
+          skills: ["内容策划", "用户增长", "活动运营", "数据复盘", "渠道管理"],
+          courses: [
+            { text: "MGT2020 Principles of Management", type: "基础课" },
+            { text: "MKT2010 Marketing Management", type: "基础课" },
+            { text: "DMS3003 Data Analytics and Decision Making", type: "四选一" },
+            { text: "MKT3030 Integrated Marketing Communication", type: "进阶课" },
+          ],
+        },
+        ops_ecom: {
+          skills: ["店铺运营", "流量运营", "跨境合规", "供应链协同", "订单管理"],
+          courses: [
+            { text: "DMS2030 Operations Management", type: "基础课" },
+            { text: "FIN2010 Financial Management", type: "基础课" },
+            { text: "ECO3610 International Trade", type: "四选一" },
+            { text: "MKT3310 Marketing Analytics", type: "进阶课" },
+          ],
+        },
+        user_research: {
+          skills: ["用户调研", "需求挖掘", "行为分析", "数据洞察", "报告输出"],
+          courses: [
+            { text: "STA2001 Probability and Statistics I", type: "基础课" },
+            { text: "MKT4120 Marketing Research", type: "进阶课" },
+            { text: "MKT3020 Consumer Behavior", type: "进阶课" },
+          ],
+        },
+        hr_admin: {
+          skills: ["组织管理", "招聘绩效", "流程合规", "行政统筹", "沟通协调"],
+          courses: [
+            { text: "MGT2020 Principles of Management", type: "基础课" },
+            { text: "FIN2010 Financial Management", type: "基础课" },
+            { text: "ACT3153 Business and Company Law", type: "进阶课" },
+          ],
+        },
+        finance_accounting: {
+          skills: ["账务处理", "报表编制", "成本控制", "预算管理", "财务分析"],
+          courses: [
+            { text: "ACT2111 Introductory Financial Accounting", type: "基础课" },
+            { text: "ACT2121 Introductory Management Accounting", type: "基础课" },
+            { text: "FIN2010 Financial Management", type: "四选一" },
+            { text: "ACT4213 Financial Statement Analysis", type: "进阶课" },
+          ],
+        },
+        finance_audit: {
+          skills: ["内控审计", "风险识别", "合规核查", "舞弊分析", "审计报告"],
+          courses: [
+            { text: "ACT2111 Introductory Financial Accounting", type: "基础课" },
+            { text: "ACT4131 Auditing", type: "进阶课" },
+            { text: "ACT4231 Internal Auditing and Risk Management", type: "进阶课" },
+          ],
+        },
+        finance_tax: {
+          skills: ["税务申报", "税务筹划", "跨境税收", "转让定价", "合规风控"],
+          courses: [
+            { text: "ACT2111 Introductory Financial Accounting", type: "基础课" },
+            { text: "ACT4262 China Taxation", type: "进阶课" },
+            { text: "ACT4263 International Taxation", type: "进阶课" },
+          ],
+        },
+        consulting: {
+          skills: ["行业研究", "数据建模", "商业诊断", "方案撰写", "政策分析"],
+          courses: [
+            { text: "ECO2011 Basic Microeconomics", type: "基础课" },
+            { text: "ECO2021 Basic Macroeconomics", type: "基础课" },
+            { text: "ECO3121 Introductory Econometrics", type: "四选一" },
+            { text: "ECO3160 Game Theory and Business Strategy", type: "进阶课" },
+          ],
+        },
+        sales: {
+          skills: ["客户开发", "商务谈判", "渠道管理", "业绩达成", "客户维护"],
+          courses: [
+            { text: "MKT2010 Marketing Management", type: "基础课" },
+            { text: "MKT3020 Consumer Behavior", type: "进阶课" },
+          ],
+        },
+        foreign_trade: {
+          skills: ["跨境谈判", "报关物流", "国际结算", "单证处理", "跨境合规"],
+          courses: [
+            { text: "ECO3610 International Trade", type: "基础课" },
+            { text: "ECO3630 International Finance", type: "基础课" },
+            { text: "MGT4250 Cross-Cultural Communication and Negotiation", type: "进阶课" },
+          ],
+        },
+        marketing: {
+          skills: ["品牌策划", "投放优化", "用户洞察", "数据建模", "公关传播"],
+          courses: [
+            { text: "MKT2010 Marketing Management", type: "基础课" },
+            { text: "DMS3003 Data Analytics and Decision Making", type: "四选一" },
+            { text: "MKT4110 Strategic Brand Management", type: "进阶课" },
+            { text: "MKT3310 Marketing Analytics", type: "进阶课" },
+          ],
+        },
+        finance_main: {
+          skills: ["投资分析", "估值定价", "风险管理", "资产配置", "合规清算"],
+          courses: [
+            { text: "FIN2010 Financial Management", type: "基础课" },
+            { text: "FIN3030 Financial Institutions and Markets", type: "基础课" },
+            { text: "FIN3080 Investment Analysis and Portfolio Management", type: "四选一" },
+            { text: "FIN4110 Options and Futures", type: "进阶课" },
+            { text: "RMS4060 Risk Management with Derivatives", type: "进阶课" },
+          ],
+        },
+        data_analyst: {
+          skills: ["数据清洗", "统计建模", "数据可视化", "商业决策", "AI应用"],
+          courses: [
+            { text: "STA2001 Probability and Statistics I", type: "基础课" },
+            { text: "MAT2040 Linear Algebra", type: "基础课" },
+            { text: "DMS3003 Data Analytics and Decision Making", type: "四选一" },
+            { text: "MIS2051 IT in Business Applications", type: "进阶课" },
+            { text: "DDA3020 Machine Learning", type: "进阶课" },
+          ],
+        },
+        intl_management_marketing: {
+          skills: ["跨国运营", "跨文化沟通", "战略管理", "品牌定位", "全球渠道"],
+          courses: [
+            { text: "MGT2020 Principles of Management", type: "基础课" },
+            { text: "MKT2010 Marketing Management", type: "基础课" },
+            { text: "MGT3250 International Business", type: "四选一" },
+            { text: "MGT4250 Cross-Cultural Communication and Negotiation", type: "进阶课" },
+          ],
+        },
+        supply_chain_ops: {
+          skills: ["全链协同", "成本管控", "交付管理", "供应链风险应对"],
+          courses: [
+            { text: "DMS2030 Operations Management", type: "基础课" },
+            { text: "MGT2020 Principles of Management", type: "基础课" },
+            { text: "DMS3003 Data Analytics and Decision Making", type: "四选一" },
+            { text: "MIS2051 IT in Business Applications", type: "进阶课" },
+            { text: "SCM3010 Supply Chain Management", type: "进阶课" },
+          ],
+        },
+        production_plan: {
+          skills: ["需求预测", "产能计划", "库存优化", "交期管控", "生产排程"],
+          courses: [
+            { text: "DMS2030 Operations Management", type: "基础课" },
+            { text: "FIN2210 Probability for Finance", type: "基础课" },
+            { text: "STA4003 Time Series", type: "四选一" },
+            { text: "ECO3080 Machine Learning for Business", type: "进阶课" },
+            { text: "SCM3020 Demand and Inventory Planning", type: "进阶课" },
+          ],
+        },
+        supply_procurement: {
+          skills: ["供应商开发", "商务议价", "成本控制", "质量管控", "交付管理"],
+          courses: [
+            { text: "DMS2030 Operations Management", type: "基础课" },
+            { text: "ACT3153 Business and Company Law", type: "基础课" },
+            { text: "ECO3610 International Trade", type: "四选一" },
+            { text: "SCM3030 Strategic Procurement and Supply", type: "进阶课" },
+          ],
+        },
+        warehouse_logistics: {
+          skills: ["仓储规划", "物流调度", "配送优化", "WMS系统", "成本管控"],
+          courses: [
+            { text: "DMS2030 Operations Management", type: "基础课" },
+            { text: "DMS3003 Data Analytics and Decision Making", type: "四选一" },
+            { text: "MIS2051 IT in Business Applications", type: "进阶课" },
+            { text: "LGS3010 Logistics and Distribution Management", type: "进阶课" },
+          ],
+        },
+        supply_data: {
+          skills: ["数据建模", "流程优化", "供应链仿真", "效率提升", "成本分析"],
+          courses: [
+            { text: "STA2001 Probability and Statistics I", type: "基础课" },
+            { text: "DMS2030 Operations Management", type: "基础课" },
+            { text: "FMA4200 Financial Data Analysis", type: "四选一" },
+            { text: "STA4003 Time Series", type: "进阶课" },
+            { text: "ACT4321 Accounting Database and Data Visualization", type: "进阶课" },
+          ],
+        },
       };
-
+      const LEGACY_CAREER_PROFILES = {
+        career_ib_analyst: { skills:["企业估值","财务建模","并购重组","尽职调查","投融资方案设计","财报分析"], courses:[{ text:"FIN2010 Financial Management", type:"基础课" },{ text:"FIN3080 Investment Analysis and Portfolio Management", type:"四选一" },{ text:"FIN4210 Corporate Finance", type:"进阶课" },{ text:"FIN4220 Advanced Corporate Finance", type:"进阶课" },{ text:"FIN4050 Mergers and Acquisitions", type:"进阶课" },{ text:"ACT4213 Financial Statement Analysis", type:"进阶课" },{ text:"FIN4230 Value Investing", type:"进阶课" }] },
+        career_securities_trader: { skills:["金融市场交易","衍生品操作","风险控制","投资组合管理","行情研判"], courses:[{ text:"FIN3080 Investment Analysis and Portfolio Management", type:"四选一" },{ text:"FIN4110 Options and Futures", type:"进阶课" },{ text:"FIN3030 Financial Institutions and Markets", type:"基础课" },{ text:"RMS4060 Risk Management with Derivatives", type:"进阶课" },{ text:"FIN4080 Behavioral Finance", type:"进阶课" },{ text:"FIN4120 Fixed Income Securities Analysis", type:"进阶课" }] },
+        career_bank_mt: { skills:["商业银行运营","信贷管理","金融合规","客户管理","宏观政策解读"], courses:[{ text:"FIN3030 Financial Institutions and Markets", type:"基础课" },{ text:"FIN3060 Banking", type:"进阶课" },{ text:"FIN2010 Financial Management", type:"基础课" },{ text:"FIN4210 Corporate Finance", type:"进阶课" },{ text:"ECO3410 Economics of Money and Financial Institutions", type:"进阶课" },{ text:"ACT3181 Credit Rating and Risk Management", type:"进阶课" }] },
+        career_investment_manager: { skills:["项目尽调","估值建模","投后管理","VC/PE运作","商业计划书研判"], courses:[{ text:"FIN2010 Financial Management", type:"基础课" },{ text:"FIN3330 Alternative Investments", type:"进阶课" },{ text:"FIN3340 Financial Innovations and Alternative Investment", type:"进阶课" },{ text:"FIN4210 Corporate Finance", type:"进阶课" },{ text:"FIN4230 Value Investing", type:"进阶课" },{ text:"ACT4213 Financial Statement Analysis", type:"进阶课" }] },
+        career_mgmt_consultant: { skills:["行业研究","战略规划","商业分析","数据建模","方案撰写","案例分析"], courses:[{ text:"ECO2011 Basic Microeconomics", type:"基础课" },{ text:"ECO3011 Intermediate Microeconomic Theory", type:"进阶课" },{ text:"ECO3160 Game Theory and Business Strategy", type:"进阶课" },{ text:"ECO3480 Industrial Organization and Public Policy", type:"进阶课" },{ text:"ECO3211 Quantitative Methods for Policy Evaluation", type:"四选一" },{ text:"ECO3110 Behavioral Economics", type:"进阶课" }] },
+        career_strategy_analyst: { skills:["宏观趋势研判","用户与市场分析","商业模型分析","数据驱动决策"], courses:[{ text:"ECO2021 Basic Macroeconomics", type:"基础课" },{ text:"ECO3021 Intermediate Macroeconomic Theory", type:"进阶课" },{ text:"ECO3620 Data Analysis and Macroeconomic Policies", type:"进阶课" },{ text:"ECO3150 Digital Economics", type:"进阶课" },{ text:"ECO3110 Behavioral Economics", type:"进阶课" }] },
+        career_macro_researcher: { skills:["宏观经济预测","政策分析","经济指标建模","行业周期判断"], courses:[{ text:"ECO2021 Basic Macroeconomics", type:"基础课" },{ text:"ECO3021 Intermediate Macroeconomic Theory", type:"进阶课" },{ text:"ECO3630 International Finance", type:"基础课" },{ text:"ECO3410 Economics of Money and Financial Institutions", type:"进阶课" },{ text:"ECO3620 Data Analysis and Macroeconomic Policies", type:"进阶课" },{ text:"ECO3710 China Economy", type:"进阶课" }] },
+        career_regulatory_analyst: { skills:["政策评估","经济统计","风险监测","合规分析","宏观审慎管理"], courses:[{ text:"ECO3430 Public Finance", type:"进阶课" },{ text:"ECO4121 Intermediate Econometrics", type:"进阶课" },{ text:"ECO3230 Economic Analysis of Law and Human Behavior", type:"进阶课" },{ text:"ECO3410 Economics of Money and Financial Institutions", type:"进阶课" },{ text:"ECO4001 Environmental Economics and Policy", type:"进阶课" }] },
+        career_big4_auditor: { skills:["财务审计","内控测试","审计准则应用","风险评估","底稿编制"], courses:[{ text:"ACT2111 Introductory Financial Accounting", type:"基础课" },{ text:"ACT3011 Intermediate Financial Accounting", type:"进阶课" },{ text:"ACT4131 Auditing", type:"进阶课" },{ text:"ACT4231 Internal Auditing and Risk Management", type:"进阶课" },{ text:"ACT3141 Accounting Information Systems", type:"进阶课" },{ text:"ACT3131 Accounting Theory", type:"进阶课" }] },
+        career_corporate_finance: { skills:["账务处理","成本核算","预算管理","财务报表编制","资金管理"], courses:[{ text:"ACT2121 Introductory Management Accounting", type:"基础课" },{ text:"ACT3011 Intermediate Financial Accounting", type:"进阶课" },{ text:"ACT3311 Accounting Forecasting and Analysis", type:"进阶课" },{ text:"ACT4213 Financial Statement Analysis", type:"进阶课" },{ text:"ACT4121 Strategic Management Accounting", type:"进阶课" }] },
+        career_tax_advisor: { skills:["税务合规","税务筹划","中国税制","国际税收","转让定价"], courses:[{ text:"ACT2111 Introductory Financial Accounting", type:"基础课" },{ text:"ACT4262 China Taxation", type:"进阶课" },{ text:"ACT4263 International Taxation", type:"进阶课" },{ text:"ACT3153 Business and Company Law", type:"进阶课" }] },
+        career_accountant: { skills:["会计核算","报表编制","内控管理","财务分析","会计准则执行"], courses:[{ text:"ACT2111 Introductory Financial Accounting", type:"基础课" },{ text:"ACT3011 Intermediate Financial Accounting", type:"进阶课" },{ text:"ACT3131 Accounting Theory", type:"进阶课" },{ text:"ACT3141 Accounting Information Systems", type:"进阶课" },{ text:"ACT4213 Financial Statement Analysis", type:"进阶课" }] },
+        career_quant_trader: { skills:["量化策略开发","回测","程序化交易","风险模型","统计套利"], courses:[{ text:"FIN2210 Probability for Finance", type:"基础课" },{ text:"FIN4110 Options and Futures", type:"进阶课" },{ text:"FMA4200 Financial Data Analysis", type:"四选一" },{ text:"ECO3090 Machine Learning for Financial Economics", type:"进阶课" },{ text:"MAT4500 Stochastics Differential Equations", type:"进阶课" },{ text:"STA4003 Time Series", type:"进阶课" }] },
+        career_fin_model_dev: { skills:["衍生品定价","风险模型","数值计算","蒙特卡洛模拟","量化建模"], courses:[{ text:"FMA4800 Financial Computation", type:"进阶课" },{ text:"FIN4110 Options and Futures", type:"进阶课" },{ text:"STA4001 Stochastic Process", type:"进阶课" },{ text:"FMA4200 Financial Data Analysis", type:"四选一" },{ text:"FIN4231 Asset Pricing", type:"进阶课" },{ text:"MAT3280 Probability Theory", type:"进阶课" }] },
+        career_fintech_algo: { skills:["机器学习","数据分析","金融算法","大数据处理","模型部署"], courses:[{ text:"DDA3020 Machine Learning", type:"进阶课" },{ text:"ACT4311 Data Mining for Accounting Analytics", type:"进阶课" },{ text:"FIN3210 Fintech Theory and Practice", type:"进阶课" },{ text:"FMA4200 Financial Data Analysis", type:"四选一" },{ text:"FIN3090 AI Applications in Finance", type:"进阶课" },{ text:"STA4003 Time Series", type:"进阶课" }] },
+        career_bi_analyst: { skills:["数据清洗","统计建模","可视化","商业洞察","报告输出"], courses:[{ text:"DMS3003 Data Analytics and Decision Making", type:"四选一" },{ text:"ACT4321 Accounting Database and Data Visualization", type:"进阶课" },{ text:"MKT3310 Marketing Analytics", type:"进阶课" },{ text:"ACT4311 Data Mining for Accounting Analytics", type:"进阶课" },{ text:"STA3010 Regression Analysis", type:"进阶课" },{ text:"STA3020 Statistical Inference", type:"进阶课" }] },
+        career_data_ops: { skills:["用户数据分析","增长运营","数据监控","业务指标优化"], courses:[{ text:"MKT3320 Digital Consumer Analytics", type:"进阶课" },{ text:"MKT3310 Marketing Analytics", type:"进阶课" },{ text:"DMS3003 Data Analytics and Decision Making", type:"四选一" },{ text:"ECO3080 Machine Learning for Business", type:"进阶课" },{ text:"ACT4321 Accounting Database and Data Visualization", type:"进阶课" }] },
+        career_digital_analyst: { skills:["流程数字化","数据治理","业务分析","系统需求","数字化转型"], courses:[{ text:"ACT3141 Accounting Information Systems", type:"进阶课" },{ text:"DMS3003 Data Analytics and Decision Making", type:"四选一" },{ text:"ACT4321 Accounting Database and Data Visualization", type:"进阶课" },{ text:"MIS2051 IT in Business Applications", type:"进阶课" }] },
+        career_market_data_specialist: { skills:["市场调研","用户画像","营销效果分析","数据报表","竞品分析"], courses:[{ text:"MKT4120 Marketing Research", type:"进阶课" },{ text:"MKT3310 Marketing Analytics", type:"进阶课" },{ text:"MKT3320 Digital Consumer Analytics", type:"进阶课" },{ text:"DMS3003 Data Analytics and Decision Making", type:"四选一" },{ text:"MKT3060 Quantitative Marketing Methods in the AI Age", type:"进阶课" }] },
+        career_cross_border_business: { skills:["国际贸易","跨境运营","海关合规","海外市场拓展","供应链管理"], courses:[{ text:"ECO3610 International Trade", type:"基础课" },{ text:"MGT3250 International Business", type:"四选一" },{ text:"MKT3050 Global Marketing", type:"进阶课" },{ text:"DMS2030 Operations Management", type:"基础课" },{ text:"ECO3630 International Finance", type:"基础课" },{ text:"MGT4250 Cross-Cultural Communication and Negotiation", type:"进阶课" }] },
+        career_brand_pr: { skills:["品牌管理","媒体沟通","危机公关","活动策划","舆情管理"], courses:[{ text:"MKT3030 Integrated Marketing Communication", type:"进阶课" },{ text:"MKT4110 Strategic Brand Management", type:"进阶课" },{ text:"MGT4250 Cross-Cultural Communication and Negotiation", type:"进阶课" }] },
+        career_foreign_market_specialist: { skills:["市场调研","营销策划","品牌推广","跨文化沟通","渠道管理"], courses:[{ text:"MKT2010 Marketing Management", type:"基础课" },{ text:"MKT3050 Global Marketing", type:"进阶课" },{ text:"MKT3020 Consumer Behavior", type:"进阶课" },{ text:"MGT4250 Cross-Cultural Communication and Negotiation", type:"进阶课" },{ text:"MGT3250 International Business", type:"四选一" }] },
+        career_internet_marketing_ops: { skills:["用户增长","内容策划","活动运营","渠道投放","数据复盘"], courses:[{ text:"MKT2010 Marketing Management", type:"基础课" },{ text:"MKT3320 Digital Consumer Analytics", type:"进阶课" },{ text:"MKT3020 Consumer Behavior", type:"进阶课" },{ text:"MKT3310 Marketing Analytics", type:"进阶课" },{ text:"MKT3080 Strategic Media Planning", type:"进阶课" }] },
+      };
+      const CAREER_PROFILES = {
+        ...LEGACY_CAREER_PROFILES,
+        career_product_manager: PROFILE_TEMPLATES.product_manager,
+        career_fin_product_manager: PROFILE_TEMPLATES.product_manager,
+        career_hardware_product_manager: PROFILE_TEMPLATES.product_manager,
+        career_cosmetics_product_manager: PROFILE_TEMPLATES.product_manager,
+        career_game_planner: PROFILE_TEMPLATES.game_planner,
+        career_content_ops: PROFILE_TEMPLATES.ops_content,
+        career_new_media_ops: PROFILE_TEMPLATES.ops_content,
+        career_product_ops: PROFILE_TEMPLATES.ops_content,
+        career_category_ops: PROFILE_TEMPLATES.ops_content,
+        career_business_ops: PROFILE_TEMPLATES.ops_content,
+        career_domestic_ecom_ops: PROFILE_TEMPLATES.ops_ecom,
+        career_crossborder_ecom_ops: PROFILE_TEMPLATES.ops_ecom,
+        career_user_research: PROFILE_TEMPLATES.user_research,
+        career_hr: PROFILE_TEMPLATES.hr_admin,
+        career_admin: PROFILE_TEMPLATES.hr_admin,
+        career_accounting: PROFILE_TEMPLATES.finance_accounting,
+        career_cashier: PROFILE_TEMPLATES.finance_accounting,
+        career_fin_bp: PROFILE_TEMPLATES.finance_accounting,
+        career_fin_analyst: PROFILE_TEMPLATES.finance_accounting,
+        career_audit: PROFILE_TEMPLATES.finance_audit,
+        career_internal_audit: PROFILE_TEMPLATES.finance_audit,
+        career_risk_control: PROFILE_TEMPLATES.finance_audit,
+        career_tax: PROFILE_TEMPLATES.finance_tax,
+        career_international_tax: PROFILE_TEMPLATES.finance_tax,
+        career_consulting_research: PROFILE_TEMPLATES.consulting,
+        career_sales: PROFILE_TEMPLATES.sales,
+        career_sales_management: PROFILE_TEMPLATES.sales,
+        career_service_sales: PROFILE_TEMPLATES.sales,
+        career_foreign_trade_sales: PROFILE_TEMPLATES.foreign_trade,
+        career_import_export_trade: PROFILE_TEMPLATES.foreign_trade,
+        career_marketing: PROFILE_TEMPLATES.marketing,
+        career_pr_media: PROFILE_TEMPLATES.marketing,
+        career_advertising: PROFILE_TEMPLATES.marketing,
+        career_business_data_analysis: PROFILE_TEMPLATES.marketing,
+        career_bank_securities_fund_insurance_investment_risk: PROFILE_TEMPLATES.finance_main,
+        career_data_analyst: PROFILE_TEMPLATES.data_analyst,
+        career_intl_business_management_marketing: PROFILE_TEMPLATES.intl_management_marketing,
+        career_supply_chain_ops: PROFILE_TEMPLATES.supply_chain_ops,
+        career_plan_production_plan: PROFILE_TEMPLATES.production_plan,
+        career_procurement_buyer_trade: PROFILE_TEMPLATES.supply_procurement,
+        career_warehouse_logistics: PROFILE_TEMPLATES.warehouse_logistics,
+        career_supply_chain_data_analysis: PROFILE_TEMPLATES.supply_data,
+      };
       const data = CAREER_PROFILES[profile.careerId] || { skills: [], courses: [] };
-      const COURSE_DETAILS_RAW = [
-        "FIN2010|财务管理基础|投融资、资本成本、现金流",
-        "FIN2210|金融概率论|分布、期望、收敛、中心极限定理",
-        "FIN3030|金融机构与市场|银行、监管、金融市场",
-        "FIN3080|投资组合、股票估值、量化策略|投资组合、股票估值、量化策略",
-        "FIN3210|金融科技|大数据、区块链、AI在金融中应用",
-        "FIN3340|风投/私募股权|初创估值、退出机制",
-        "FIN4080|行为金融|认知偏差、市场异象、投资者行为",
-        "FIN4110|期权期货|衍生品定价、套利、对冲策略",
-        "FIN4120|固定收益|债券定价、久期、利率风险",
-        "FIN4210|公司金融|资本结构、股利政策、资本预算",
-        "FIN4220|高级公司金融|企业估值、并购、重组",
-        "FIN4230|价值投资|安全边际、自由现金流、护城河分析",
-        "FIN4231|资产定价|因子模型、消费定价、市场效率",
-        "FMA4200|金融数据分析|回归、时间序列、风险管理",
-        "FMA4800|金融计算|蒙特卡洛、二叉树、数值定价",
-        "RMS4060|衍生品风险管理|利率/信用/市场风险",
-        "ECO2011|微观基础|供需、消费者、厂商、市场均衡",
-        "ECO2021|宏观基础|GDP、通胀、失业、货币财政政策",
-        "ECO3011|中级微观|效用、生产、垄断、寡头",
-        "ECO3021|中级宏观|增长模型、经济周期、IS-LM",
-        "ECO3080|商业机器学习|监督/无监督学习、模型评估",
-        "ECO3090|金融机器学习|时序、信用风险、交易策略",
-        "ECO3110|行为经济学|前景理论、时间偏好、社会偏好",
-        "ECO3121|计量经济学|回归、假设检验、Stata实操",
-        "ECO3160|博弈论|纳什均衡、序贯博弈、议价",
-        "ECO3211|政策评估|DID、IV、RDD因果推断",
-        "ECO3410|货币银行|央行、货币政策、金融体系",
-        "ECO3430|公共财政|外部性、税收、社保、收入分配",
-        "ECO3480|产业组织|市场势力、反垄断、竞争政策",
-        "ECO3610|国际贸易|比较优势、要素禀赋、贸易政策",
-        "ECO3620|宏观政策数据分析|Excel/Python可视化",
-        "ECO3630|国际金融|汇率、国际收支、资本流动",
-        "ECO3710|中国经济|制度、增长、金融、创新、反腐",
-        "ECO4121|高级计量|时间序列、ARMA、GARCH、VAR",
-        "ACT2111|财务会计入门|报表、借贷、会计循环",
-        "ACT2121|管理会计|成本核算、本量利、预算、决策",
-        "ACT3011|中级财务会计|收入、租赁、所得税、养老金、每股收益",
-        "ACT3131|会计理论|信息不对称、有效市场、估值、契约理论",
-        "ACT3141|会计信息系统|业务流程、内控、金蝶系统、大数据",
-        "ACT3153|商法/公司法|合同、公司治理、并购、合规",
-        "ACT3154|商法/公司法|合同、公司治理、并购、合规",
-        "ACT3181|信用评级与风险管理|信用风险度量、案例",
-        "ACT3311|会计预测与分析|盈余质量、破产预测、舞弊分析",
-        "ACT3321|文本分析|NLP、爬虫、情感分析、主题模型",
-        "ACT4121|战略管理会计|管理控制、转移定价、绩效",
-        "ACT4131|审计学|审计流程、内控、循环审计、审计报告、职业道德",
-        "ACT4213|财务报表分析|估值、盈利、增长、现金流、AI基本面分析",
-        "ACT4231|内部审计与风险管理|公司治理、风险识别、合规",
-        "ACT4252|企业重组与破产|并购、估值、LBO、SPAC",
-        "ACT4262|中国税制|个税、企业所得税、增值税、消费税、转让定价",
-        "ACT4263|国际税收|税收协定、转让定价、跨境筹划、反避税",
-        "ACT4311|会计数据挖掘|Python、预测模型、文本分析、聚类",
-        "ACT4321|会计数据库与可视化|SQL、Stata、Tableau",
-        "MAT1001|一元微积分|极限、导数、积分、微分方程",
-        "MAT2040|线性代数|矩阵、向量空间、特征值、正交、SVD",
-        "MAT3280|概率论|测度、期望、大数定律、中心极限定理",
-        "STA2001|概率统计I|分布、估计、检验、回归",
-        "STA2002|概率统计II|分布、估计、检验、回归",
-        "STA3020|统计推断|充分统计量、似然、贝叶斯、假设检验",
-        "STA4001|随机过程|马尔可夫链、泊松过程、布朗运动、排队论",
-        "STA4003|时间序列|ARIMA、GARCH、预测、季节性",
-        "DDA3020|机器学习|监督/无监督、神经网络、决策树",
-        "MAT4500|随机微分方程|伊藤公式、鞅、衍生品定价",
-        "DMS2030|运营管理|流程、库存、供应链、质量管理",
-        "DMS3003|数据分析与决策|回归、优化、模拟",
-        "MIS2051|商业信息系统|数据库、SQL、数据挖掘、网络分析",
-        "MIS3011|高级商业AI|大模型、提示工程、AI项目全流程",
-        "MKT3310|营销分析|聚类、回归、分类、客户价值",
-        "MKT3320|数字消费者分析|RFM、逻辑回归、推荐系统、文本挖掘",
-        "MKT3060|量化营销|A/B测试、回归、DID、因果推断",
-        "MGT2020|管理学原理|计划、组织、领导、控制",
-        "MGT3250|国际商务|全球化、进入模式、跨国公司、全球-本地平衡",
-        "MGT4250|跨文化沟通与谈判|跨文化沟通与谈判",
-        "MKT2010|营销管理|STP、4P、品牌、渠道、推广",
-        "MKT3020|消费者行为|感知、学习、态度、群体、文化",
-        "MKT3030|整合营销传播|公关、数字媒体、内容策略",
-        "MKT4110|战略品牌管理|品牌资产、定位、延伸",
-        "MKT4120|营销调研|问卷、抽样、数据分析、报告",
-      ];
-      const COURSE_DETAILS = COURSE_DETAILS_RAW.reduce((acc, line) => {
-        const [code, intro, outline] = line.split("|");
-        acc[code] = { intro, outline };
-        return acc;
-      }, {});
+      const COURSE_DETAILS = window.COURSE_CATALOG || {};
       const treeEl = $("#tree");
       const courseListEl = $("#courseList");
       const recoList = $("#recoList");
@@ -211,10 +366,12 @@
         return out;
       }
 
-      function parseCourse(text) {
+      function parseCourse(item) {
+        const text = typeof item === "string" ? item : item.text;
+        const type = typeof item === "string" ? "进阶课" : item.type;
         const sp = text.indexOf(" ");
         const code = sp > 0 ? text.slice(0, sp) : text;
-        return { id: code, code, title: text, level: "进阶", durationHours: 16, tags: [code.slice(0, 3), "SME"] };
+        return { id: code, code, title: text, level: type, tags: [code.slice(0, 3)] };
       }
 
       const allCourses = (data.courses || []).map(parseCourse);
@@ -222,7 +379,8 @@
       function courseItemHtml(c) {
         const tags = (c.tags || []).map((t) => `<span class="pill have">${t}</span>`).join("");
         const checked = takenSet.has(c.id) ? "checked" : "";
-        return `<div class="item"><div class="t"><h3>${c.title}</h3><span class="badge warn">${c.level}</span></div><div class="meta"><div>来源：SME Course Catalog · 时长：${c.durationHours} 小时</div><div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px">${tags}</div><div class="row" style="margin-top:10px;justify-content:space-between"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-course-id="${c.id}" ${checked} /> 已上过这门课</label><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div></div>`;
+        const hint = c.level === "四选一" ? `<div class="hint" style="margin-top:8px">提示：四选一课程只需选择一门或多门即可。</div>` : "";
+        return `<div class="item"><div class="t"><h3>${c.title}</h3><span class="badge warn">${c.level}</span></div><div class="meta"><div>来源：Student Information System.</div>${hint}<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px">${tags}</div><div class="row" style="margin-top:10px;justify-content:space-between"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-course-id="${c.id}" ${checked} /> 已上过这门课</label><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div></div>`;
       }
 
       function recoHtml(c, i) {

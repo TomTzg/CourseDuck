@@ -22,26 +22,48 @@
 
       <div class="grid">
         <section class="panel">
-          <h2 id="courseCode">课程代码</h2>
-          <p class="hint" id="courseIntro">简介：-</p>
+          <p class="hint" id="courseSource">来源：Student Information System.</p>
+          <div class="field field-course-code">
+            <label>课程代码</label>
+            <div class="chip course-code-chip" id="courseCodeVal">-</div>
+          </div>
+          <div class="field">
+            <label>课程名称</label>
+            <div class="course-name-val" id="courseNameVal">-</div>
+          </div>
           <div class="item">
             <div class="t"><h3>课程大纲</h3></div>
-            <div class="meta" id="courseOutline">-</div>
+            <div class="meta" id="courseOutlineVal">-</div>
           </div>
         </section>
       </div>
     </div>
 
+    <script src="./assets/course-catalog.js"></script>
     <script>
       const params = new URLSearchParams(window.location.search);
-      const code = params.get("code") || "";
-      let details = {};
-      try { details = JSON.parse(localStorage.getItem("courseduck.courseDetails") || "{}"); } catch {}
+      const code = decodeURIComponent(params.get("code") || "").trim();
+      let legacy = {};
+      try {
+        legacy = JSON.parse(localStorage.getItem("courseduck.courseDetails") || "{}");
+      } catch {}
 
-      const detail = details[code] || { intro: "暂无该课程简介", outline: "暂无该课程大纲" };
-      document.getElementById("courseCode").textContent = code || "课程代码";
-      document.getElementById("courseIntro").textContent = `简介：${detail.intro}`;
-      document.getElementById("courseOutline").textContent = detail.outline;
+      const catalog = window.COURSE_CATALOG || {};
+      const fromCatalog = code ? catalog[code] : null;
+      const fromLegacy = code && legacy[code] ? legacy[code] : null;
+
+      const name =
+        (fromCatalog && fromCatalog.name) ||
+        (fromLegacy && fromLegacy.name) ||
+        "";
+      const outline =
+        (fromCatalog && fromCatalog.outline) ||
+        (fromLegacy && fromLegacy.outline) ||
+        "暂无该课程大纲";
+
+      document.getElementById("courseCodeVal").textContent = code || "—";
+      document.getElementById("courseNameVal").textContent = name || "—";
+      document.getElementById("courseOutlineVal").textContent = outline;
 
       document.getElementById("backBtn").addEventListener("click", () => {
         if (history.length > 1) history.back();
@@ -50,4 +72,3 @@
     </script>
   </body>
 </html>
-

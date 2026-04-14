@@ -12,10 +12,11 @@
         <div class="brand">
           <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
           <div>
-            <h1>CourseDuck <span class="sub">步骤 2/2：选择职业</span></h1>
+            <h1>CourseDuck <span class="sub">步骤 3/3：选择职业</span></h1>
           </div>
         </div>
         <div class="nav">
+          <a class="btn" href="./school.html">返回学院选择</a>
           <a class="btn" href="./info.html">返回专业选择</a>
           <a class="btn danger" href="./login.html">退出/切换账号</a>
         </div>
@@ -23,15 +24,21 @@
 
       <section class="panel centered">
           <h2>确认目标职业</h2>
-          <p class="hint">职业选项会根据你已确认的专业动态展示。</p>
+          <p class="hint">先选择职业类别，再选择该类别下的具体专业/岗位方向。</p>
           <div class="field">
             <label>已选专业</label>
             <div class="chip" id="majorNameChip">-</div>
           </div>
           <div class="field">
-            <label for="career">职业方向</label>
+            <label for="careerCategory">职业类别</label>
+            <select id="careerCategory">
+              <option value="">请选择职业类别</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="career">具体专业/岗位</label>
             <select id="career">
-              <option value="">请选择职业方向</option>
+              <option value="">请先选择职业类别</option>
             </select>
           </div>
           <form id="careerForm" action="./recommend.html" method="get">
@@ -68,7 +75,11 @@
         mkt_ib: "市场营销与国际商务",
         bdm: "大数据管理与应用",
       };
+      const SCHOOL_IDS = ["SME", "SSE", "SDS", "SAI", "HSS", "MUS", "MED"];
       const profile = readProfile() || { majorId: "", careerId: "" };
+      if (!profile.schoolId || !SCHOOL_IDS.includes(profile.schoolId)) {
+        window.location.href = "./school.html";
+      }
       const queryMajorId = new URLSearchParams(window.location.search).get("majorId") || "";
       const majorId = queryMajorId || profile.majorId || "";
       if (!majorId) {
@@ -76,77 +87,166 @@
       }
 
       const majorNameChip = $("#majorNameChip");
+      const careerCategorySel = $("#careerCategory");
       const careerSel = $("#career");
       const careerForm = $("#careerForm");
       const majorIdHidden = $("#majorIdHidden");
       const careerIdHidden = $("#careerIdHidden");
-      const CAREER_FALLBACK = {
-        fin: [
-          { id: "career_ib_analyst", name: "投资银行分析师" },
-          { id: "career_securities_trader", name: "证券公司交易员" },
-          { id: "career_bank_mt", name: "银行总行管培生" },
-          { id: "career_investment_manager", name: "投资经理" },
-        ],
-        economics: [
-          { id: "career_mgmt_consultant", name: "管理咨询顾问" },
-          { id: "career_strategy_analyst", name: "互联网大厂战略分析师" },
-          { id: "career_macro_researcher", name: "券商宏观研究员" },
-          { id: "career_regulatory_analyst", name: "金融监管机构经济分析岗" },
-        ],
-        accounting: [
-          { id: "career_big4_auditor", name: "四大会计师事务所审计师" },
-          { id: "career_corporate_finance", name: "企业财务" },
-          { id: "career_tax_advisor", name: "税务师" },
-          { id: "career_accountant", name: "会计师" },
-        ],
-        fe: [
-          { id: "career_quant_trader", name: "量化交易员" },
-          { id: "career_fin_model_dev", name: "金融模型开发" },
-          { id: "career_fintech_algo", name: "金融科技算法工程师" },
-        ],
-        bdm: [
-          { id: "career_bi_analyst", name: "商业数据分析师" },
-          { id: "career_data_ops", name: "互联网数据运营" },
-          { id: "career_digital_analyst", name: "企业数字化分析师" },
-          { id: "career_market_data_specialist", name: "市场数据分析专员" },
-        ],
-        intl_business: [
-          { id: "career_cross_border_business", name: "跨境商务" },
-          { id: "career_brand_pr", name: "品牌公关" },
-          { id: "career_foreign_market_specialist", name: "外企市场部专员" },
-          { id: "career_internet_marketing_ops", name: "互联网市场策划/运营" },
-        ],
-        mkt_ib: [
-          { id: "career_cross_border_business", name: "跨境商务" },
-          { id: "career_brand_pr", name: "品牌公关" },
-          { id: "career_foreign_market_specialist", name: "外企市场部专员" },
-          { id: "career_internet_marketing_ops", name: "互联网市场策划/运营" },
-        ],
+      const MAJOR_TAGS = {
+        economics: ["经济学"],
+        fin: ["金融学"],
+        intl_business: ["国际商务"],
+        accounting: ["会计学"],
+        fe: ["金融工程"],
+        mkt_ib: ["管理学", "市场营销", "国际商务"],
+        bdm: ["商业分析", "大数据", "管理信息系统", "数字媒体"],
       };
+      const CAREER_CATEGORIES = [
+        { id: "product", name: "产品类" },
+        { id: "operations", name: "运营类" },
+        { id: "design_research", name: "设计/用户研究" },
+        { id: "hr_admin", name: "人力/行政" },
+        { id: "finance_audit_tax", name: "财务/审计/税务" },
+        { id: "consulting", name: "咨询/调研" },
+        { id: "sales_trade", name: "销售/外贸" },
+        { id: "marketing_pr_ad", name: "市场/公关/广告" },
+        { id: "finance", name: "金融类" },
+        { id: "data_bi_mis", name: "大数据/商业分析/管理信息系统" },
+        { id: "intl_management_marketing", name: "国际商务/管理/营销" },
+        { id: "supply_chain", name: "供应链" },
+      ];
+      const CAREER_OPTIONS = [
+        { id: "career_product_manager", name: "互联网产品经理", categoryId: "product", majorTags: ["管理学", "市场营销", "金融学"] },
+        { id: "career_fin_product_manager", name: "金融产品经理", categoryId: "product", majorTags: ["管理学", "市场营销", "金融学"] },
+        { id: "career_hardware_product_manager", name: "硬件产品经理", categoryId: "product", majorTags: ["管理学", "市场营销", "金融学"] },
+        { id: "career_cosmetics_product_manager", name: "化妆品产品经理", categoryId: "product", majorTags: ["管理学", "市场营销", "金融学"] },
+        { id: "career_game_planner", name: "游戏策划/制作", categoryId: "product", majorTags: ["管理学", "数字媒体", "商业分析"] },
+        { id: "career_content_ops", name: "内容运营", categoryId: "operations", majorTags: ["市场营销", "国际商务", "管理学"] },
+        { id: "career_new_media_ops", name: "新媒体运营", categoryId: "operations", majorTags: ["市场营销", "国际商务", "管理学"] },
+        { id: "career_product_ops", name: "产品运营", categoryId: "operations", majorTags: ["市场营销", "国际商务", "管理学"] },
+        { id: "career_category_ops", name: "品类运营", categoryId: "operations", majorTags: ["市场营销", "国际商务", "管理学"] },
+        { id: "career_business_ops", name: "业务运营", categoryId: "operations", majorTags: ["市场营销", "国际商务", "管理学"] },
+        { id: "career_domestic_ecom_ops", name: "国内电商运营", categoryId: "operations", majorTags: ["市场营销", "国际商务", "供应链管理"] },
+        { id: "career_crossborder_ecom_ops", name: "跨境电商运营", categoryId: "operations", majorTags: ["市场营销", "国际商务", "供应链管理"] },
+        { id: "career_user_research", name: "用户研究", categoryId: "design_research", majorTags: ["市场营销", "商业分析", "管理学"] },
+        { id: "career_hr", name: "人力资源", categoryId: "hr_admin", majorTags: ["管理学"] },
+        { id: "career_admin", name: "行政", categoryId: "hr_admin", majorTags: ["管理学"] },
+        { id: "career_accounting", name: "会计", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_cashier", name: "出纳", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_fin_bp", name: "财务BP", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_fin_analyst", name: "财务分析", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_audit", name: "审计", categoryId: "finance_audit_tax", majorTags: ["会计学", "金融学"] },
+        { id: "career_internal_audit", name: "内部审计", categoryId: "finance_audit_tax", majorTags: ["会计学", "金融学"] },
+        { id: "career_risk_control", name: "风控", categoryId: "finance_audit_tax", majorTags: ["会计学", "金融学"] },
+        { id: "career_tax", name: "税务", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_international_tax", name: "国际税收", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_consulting_research", name: "咨询/调研", categoryId: "consulting", majorTags: ["经济学", "管理学", "商业分析"] },
+        { id: "career_sales", name: "销售", categoryId: "sales_trade", majorTags: ["市场营销"] },
+        { id: "career_sales_management", name: "销售管理", categoryId: "sales_trade", majorTags: ["市场营销"] },
+        { id: "career_service_sales", name: "服务业销售", categoryId: "sales_trade", majorTags: ["市场营销"] },
+        { id: "career_foreign_trade_sales", name: "外贸销售", categoryId: "sales_trade", majorTags: ["国际商务", "供应链管理", "市场营销"] },
+        { id: "career_import_export_trade", name: "进出口贸易", categoryId: "sales_trade", majorTags: ["国际商务", "供应链管理", "市场营销"] },
+        { id: "career_marketing", name: "市场/营销", categoryId: "marketing_pr_ad", majorTags: ["市场营销", "商业分析", "管理学"] },
+        { id: "career_pr_media", name: "公关媒介", categoryId: "marketing_pr_ad", majorTags: ["市场营销", "商业分析", "管理学"] },
+        { id: "career_advertising", name: "广告", categoryId: "marketing_pr_ad", majorTags: ["市场营销", "商业分析", "管理学"] },
+        { id: "career_business_data_analysis", name: "商业数据分析", categoryId: "marketing_pr_ad", majorTags: ["市场营销", "商业分析", "管理学"] },
+        { id: "career_bank_securities_fund_insurance_investment_risk", name: "银行/证券/基金/保险/投融资/风控合规清算", categoryId: "finance", majorTags: ["金融学", "金融工程"] },
+        { id: "career_data_analyst", name: "商业数据分析/数据分析师", categoryId: "data_bi_mis", majorTags: ["商业分析", "管理信息系统", "大数据"] },
+        { id: "career_intl_business_management_marketing", name: "国际商务/管理/品牌/营销", categoryId: "intl_management_marketing", majorTags: ["国际商务", "管理学", "市场营销"] },
+        { id: "career_supply_chain_ops", name: "供应链/供应链运营", categoryId: "supply_chain", majorTags: ["供应链管理", "运营管理", "商业分析"] },
+        { id: "career_plan_production_plan", name: "计划/生产计划", categoryId: "supply_chain", majorTags: ["供应链管理", "运营管理", "商业分析"] },
+        { id: "career_procurement_buyer_trade", name: "采购/买手/贸易", categoryId: "supply_chain", majorTags: ["供应链管理", "运营管理", "商业分析"] },
+        { id: "career_warehouse_logistics", name: "仓储/物流", categoryId: "supply_chain", majorTags: ["供应链管理", "运营管理", "商业分析"] },
+        { id: "career_supply_chain_data_analysis", name: "供应链数据分析", categoryId: "supply_chain", majorTags: ["供应链管理", "运营管理", "商业分析"] },
+        // 旧版职业（合并保留）
+        { id: "career_ib_analyst", name: "投资银行分析师", categoryId: "finance", majorTags: ["金融学"] },
+        { id: "career_securities_trader", name: "证券公司交易员", categoryId: "finance", majorTags: ["金融学"] },
+        { id: "career_bank_mt", name: "银行总行管培生", categoryId: "finance", majorTags: ["金融学"] },
+        { id: "career_investment_manager", name: "投资经理", categoryId: "finance", majorTags: ["金融学"] },
+        { id: "career_mgmt_consultant", name: "管理咨询顾问", categoryId: "consulting", majorTags: ["经济学"] },
+        { id: "career_strategy_analyst", name: "互联网大厂战略分析师", categoryId: "consulting", majorTags: ["经济学"] },
+        { id: "career_macro_researcher", name: "券商宏观研究员", categoryId: "finance", majorTags: ["经济学"] },
+        { id: "career_regulatory_analyst", name: "金融监管机构经济分析岗", categoryId: "finance", majorTags: ["经济学"] },
+        { id: "career_big4_auditor", name: "四大会计师事务所审计师", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_corporate_finance", name: "企业财务", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_tax_advisor", name: "税务师", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_accountant", name: "会计师", categoryId: "finance_audit_tax", majorTags: ["会计学"] },
+        { id: "career_quant_trader", name: "量化交易员", categoryId: "finance", majorTags: ["金融工程"] },
+        { id: "career_fin_model_dev", name: "金融模型开发", categoryId: "finance", majorTags: ["金融工程"] },
+        { id: "career_fintech_algo", name: "金融科技算法工程师", categoryId: "finance", majorTags: ["金融工程"] },
+        { id: "career_bi_analyst", name: "商业数据分析师", categoryId: "data_bi_mis", majorTags: ["大数据", "商业分析"] },
+        { id: "career_data_ops", name: "互联网数据运营", categoryId: "operations", majorTags: ["大数据", "商业分析"] },
+        { id: "career_digital_analyst", name: "企业数字化分析师", categoryId: "data_bi_mis", majorTags: ["大数据", "商业分析"] },
+        { id: "career_market_data_specialist", name: "市场数据分析专员", categoryId: "marketing_pr_ad", majorTags: ["大数据", "商业分析"] },
+        { id: "career_cross_border_business", name: "跨境商务", categoryId: "intl_management_marketing", majorTags: ["国际商务", "市场营销"] },
+        { id: "career_brand_pr", name: "品牌公关", categoryId: "marketing_pr_ad", majorTags: ["国际商务", "市场营销"] },
+        { id: "career_foreign_market_specialist", name: "外企市场部专员", categoryId: "intl_management_marketing", majorTags: ["国际商务", "市场营销"] },
+        { id: "career_internet_marketing_ops", name: "互联网市场策划/运营", categoryId: "operations", majorTags: ["国际商务", "市场营销"] },
+      ];
 
       setText(majorNameChip, MAJOR_NAMES[majorId] || majorId || "-");
       majorIdHidden.value = majorId;
 
-      const careers = CAREER_FALLBACK[majorId] || [];
-      careerSel.innerHTML =
-        `<option value="">请选择职业方向</option>` +
-        careers.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
-      if (profile.careerId && careers.some((c) => c.id === profile.careerId)) {
-        careerSel.value = profile.careerId;
+      const selectedMajorTags = MAJOR_TAGS[majorId] || [];
+      const allowedCareers = CAREER_OPTIONS.filter((career) =>
+        career.majorTags.some((tag) => selectedMajorTags.includes(tag))
+      );
+      const allowedCategoryIds = new Set(allowedCareers.map((career) => career.categoryId));
+      const allowedCategories = CAREER_CATEGORIES.filter((category) => allowedCategoryIds.has(category.id));
+
+      careerCategorySel.innerHTML =
+        `<option value="">请选择职业类别</option>` +
+        allowedCategories.map((category) => `<option value="${category.id}">${category.name}</option>`).join("");
+
+      function renderCareersByCategory(categoryId) {
+        const matchedCategory = allowedCategories.find((category) => category.id === categoryId);
+        if (!matchedCategory) {
+          careerSel.innerHTML = `<option value="">请先选择职业类别</option>`;
+          careerSel.value = "";
+          careerIdHidden.value = "";
+          return;
+        }
+        const careersInCategory = allowedCareers.filter((career) => career.categoryId === categoryId);
+        careerSel.innerHTML =
+          `<option value="">请选择具体专业/岗位</option>` +
+          careersInCategory.map((career) => `<option value="${career.id}">${career.name}</option>`).join("");
+      }
+
+      const initialCareer = allowedCareers.find((career) => career.id === profile.careerId);
+      if (initialCareer) {
+        careerCategorySel.value = initialCareer.categoryId;
+        renderCareersByCategory(initialCareer.categoryId);
+        careerSel.value = initialCareer.id;
+      } else {
+        renderCareersByCategory("");
       }
       careerIdHidden.value = careerSel.value || "";
+
+      careerCategorySel.addEventListener("change", () => {
+        renderCareersByCategory(careerCategorySel.value);
+      });
 
       careerSel.addEventListener("change", () => {
         careerIdHidden.value = careerSel.value || "";
       });
 
       careerForm.addEventListener("submit", (e) => {
-        if (!careerSel.value) {
+        if (!careerCategorySel.value) {
           e.preventDefault();
-          toast("请选择职业后再进入课程推荐页。");
+          toast("请先选择职业类别。");
           return;
         }
-        writeProfile({ majorId, careerId: careerSel.value });
+        if (!careerSel.value) {
+          e.preventDefault();
+          toast("请选择具体专业/岗位后再进入课程推荐页。");
+          return;
+        }
+        writeProfile({
+          ...(readProfile() || {}),
+          majorId,
+          careerId: careerSel.value,
+          careerCategoryId: careerCategorySel.value,
+        });
         careerIdHidden.value = careerSel.value;
       });
     </script>
