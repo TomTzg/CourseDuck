@@ -136,10 +136,31 @@
         (fromCatalog && fromCatalog.name) ||
         (fromLegacy && fromLegacy.name) ||
         "";
-      const outline =
-        (code && outlineOverrides[code]) ||
+      const baseOutline =
         (fromCatalog && fromCatalog.outline) ||
         (fromLegacy && fromLegacy.outline) ||
+        "";
+      const overrideOutline = (code && outlineOverrides[code]) || "";
+      function mergeOutlines(primary, secondary) {
+        const parts = []
+          .concat((primary || "").split(/[、；;，,]/))
+          .concat((secondary || "").split(/[、；;，,]/))
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const uniq = [];
+        const seen = new Set();
+        for (const item of parts) {
+          if (!seen.has(item)) {
+            seen.add(item);
+            uniq.push(item);
+          }
+        }
+        return uniq.join("、");
+      }
+      const outline =
+        mergeOutlines(baseOutline, overrideOutline) ||
+        baseOutline ||
+        overrideOutline ||
         "暂无该课程大纲";
 
       document.getElementById("courseCodeVal").textContent = code || "—";
