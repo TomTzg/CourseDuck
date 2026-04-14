@@ -78,35 +78,35 @@ git push
 
 
 ### clone命令
-安装 Git（并确保能用 GitHub）
-克隆仓库
-git clone https://github.com/你的用户名/你的仓库名.git
-cd 你的仓库名】
+1. 安装 Git（并确保能用 GitHub）
 
-新建分支（推荐，不要直接在 main 改）
+2. 克隆仓库
+git clone https://github.com/你的用户名/你的仓库名.git
+cd 你的仓库名
+
+3. 新建分支（推荐，不要直接在 main 改）
 git checkout -b feat/my-change
 
-修改代码后提交
+4。 修改代码后提交
 git add .
 git commit -m "描述这次改动"
 
-推送到 GitHub
+5. 推送到 GitHub
 git push -u origin feat/my-change
 
-到 GitHub 页面发起 Pull Request 合并到 main
+6. 到GitHub页面发起Pull Request合并到main
 
-后续每次继续开发
-进入项目后先同步最新代码：
+7. 后续每次继续开发
+7.1 进入项目后先同步最新代码：
 git pull
 
 
-如果你就想直接改 main（不推荐，但可以）
+7.2 如果你就想直接改 main（不推荐，但可以）
 git checkout main
 git pull origin main
-# 改代码后
+7.3 改代码后
 git add .
 git commit -m "update: xxx"
 git push origin main
 
-
-看提交历史：git log --oneline --graph --decorate -20
+8. 看提交历史：git log --oneline --graph --decorate -20
