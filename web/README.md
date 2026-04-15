@@ -46,7 +46,7 @@ npx serve -l 5173
 - `GET /api/skill-tree?careerId=...`z
 
 
-### push命令
+<!-- ### push命令
 1. 看改了什么
 cd <file location>
 git status
@@ -99,4 +99,4 @@ git add .
 git commit -m "update: xxx"
 git push origin main
 
-8. 看提交历史：git log --oneline --graph --decorate -20
+8. 看提交历史：git log --oneline --graph --decorate -20 -->
