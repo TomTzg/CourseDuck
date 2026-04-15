@@ -411,7 +411,6 @@ const MOCK = {
     { id: "fe", name: "金融工程" },
     { id: "mkt_ib", name: "市场营销与国际商务" },
     { id: "bdm", name: "大数据管理与应用" },
-    { id: "supply_chain", name: "供应链管理" },
   ],
   careersByMajor: {
     economics: [
@@ -454,13 +453,6 @@ const MOCK = {
       { id: "career_brand_pr", name: "品牌公关" },
       { id: "career_foreign_market_specialist", name: "外企市场部专员" },
       { id: "career_internet_marketing_ops", name: "互联网市场策划/运营" },
-    ],
-    supply_chain: [
-      { id: "career_supply_chain_ops", name: "供应链/供应链运营" },
-      { id: "career_plan_production_plan", name: "计划/生产计划" },
-      { id: "career_procurement_buyer_trade", name: "采购/买手/贸易" },
-      { id: "career_warehouse_logistics", name: "仓储/物流" },
-      { id: "career_supply_chain_data_analysis", name: "供应链数据分析" },
     ],
   },
   courses: buildCourseCatalog(),

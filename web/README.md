@@ -27,18 +27,6 @@ npx serve -l 5173
 ### 生产部署（www.CourseDuck.com, 暂时没有这个DNS， 现已在Netlify部署）
 可以用任意静态托管平台（Vercel / Netlify / Cloudflare Pages）。
 
-推荐最短流程（Vercel）：
-1. 把当前项目推到 GitHub。
-2. 在 Vercel 导入仓库并部署（无需构建命令）。
-3. 在 Vercel 的 Domains 中添加：
-   - `www.CourseDuck.com`
-   - `CourseDuck.com`
-4. 按 Vercel 提示到你的域名 DNS 控制台添加记录（通常是：
-   - `www` 配置 `CNAME` 到 Vercel 提供的地址
-   - 根域 `@` 配置 `A` 记录到 Vercel 指定 IP）
-5. 生效后访问：
-   - `https://www.CourseDuck.com`
-
 说明：
 - 根目录已新增 `index.html`，会自动跳转到 `web/login.html`。
 - 页面内部资源都是相对路径，可直接静态部署。

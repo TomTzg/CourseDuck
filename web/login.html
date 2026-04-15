@@ -53,9 +53,9 @@
               </div>
             </div>
 
-            <div class="row" style="margin-top:10px; justify-content:flex-end">
-              <button class="btn" type="button" id="agreementBtn">用户协议</button>
-              <button class="btn" type="button" id="privacyBtn">隐私政策</button>
+            <div class="row policy-links" style="margin-top:10px; justify-content:flex-end">
+              <a href="#" id="agreementBtn">用户协议</a>
+              <a href="#" id="privacyBtn">隐私政策</a>
             </div>
           </form>
 
@@ -161,8 +161,14 @@
         }
       });
 
-      agreementBtn.addEventListener("click", () => openPolicyModal("agreement"));
-      privacyBtn.addEventListener("click", () => openPolicyModal("privacy"));
+      agreementBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        openPolicyModal("agreement");
+      });
+      privacyBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        openPolicyModal("privacy");
+      });
       policyModalCloseTop.addEventListener("click", closePolicyModal);
       policyModalCloseBottom.addEventListener("click", closePolicyModal);
       policyModalOverlay.addEventListener("click", (e) => {

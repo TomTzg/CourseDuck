@@ -153,6 +153,11 @@ a{color:inherit}
   border-color: rgba(255,139,167,.45);
   background: linear-gradient(180deg, rgba(255,139,167,.24), rgba(255,139,167,.10));
 }
+.btn.confirm-btn{
+  min-width:88px;
+  padding:8px 18px;
+  font-size:13px;
+}
 
 .grid{
   margin-top:22px;
@@ -428,5 +433,15 @@ select option{
   display:flex;
   justify-content:flex-end;
   gap:8px;
+}
+
+.policy-links a{
+  color:var(--muted);
+  font-size:12px;
+  text-decoration:none;
+}
+.policy-links a:hover{
+  color:var(--text);
+  text-decoration:underline;
 }
 
