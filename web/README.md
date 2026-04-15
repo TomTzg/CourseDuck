@@ -1,4 +1,8 @@
-## CourseDuck 原型（纯前端）
+## CourseDuck · 选课鸭 （Prototype，纯前端）
+
+
+### Github： https://github.com/TomTzg/CourseDuck
+### 产品网址：snazzy-conkies-2c1fd2.netlify.app
 
 ### 页面
 - `login.html`：校园邮箱登录
@@ -41,8 +45,6 @@ npx serve -l 5173
 - `POST /api/recommendations`（body: majorId, careerId）
 - `GET /api/skill-tree?careerId=...`z
 
-### Github： https://github.com/TomTzg/CourseDuck
-### 产品网址：snazzy-conkies-2c1fd2.netlify.app
 
 ### push命令
 1. 看改了什么
