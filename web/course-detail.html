@@ -6,7 +6,7 @@
     <title>CourseDuck - 课程详情</title>
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
-  <body>
+  <body class="course-detail-page">
     <div class="container">
       <header class="topbar">
         <div class="brand">
@@ -20,12 +20,17 @@
         </div>
       </header>
 
-      <div class="grid">
-        <section class="panel">
+      <div class="grid detail-grid">
+        <section class="panel detail-panel">
+          <p class="hint">提示：课程的评分构成和前置课程会在后续版本中同步更新。</p>
+          <p class="hint">更新时间：2026/04/27</p>
           <p class="hint" id="courseSource">来源：Student Information System.</p>
           <div class="field field-course-code">
             <label>课程代码</label>
-            <div class="chip course-code-chip" id="courseCodeVal">-</div>
+            <div class="row">
+              <div class="chip course-code-chip" id="courseCodeVal">-</div>
+              <div class="chip prereq-chip" id="coursePrereqVal">前置课程：无</div>
+            </div>
           </div>
           <div class="field">
             <label>课程名称</label>
@@ -34,6 +39,10 @@
           <div class="item">
             <div class="t"><h3>课程大纲</h3></div>
             <div class="meta" id="courseOutlineVal">-</div>
+          </div>
+          <div class="item">
+            <div class="t"><h3>评分构成</h3></div>
+            <div class="meta" id="courseGradingVal">暂无（后续补充）</div>
           </div>
         </section>
       </div>
@@ -162,10 +171,14 @@
         baseOutline ||
         overrideOutline ||
         "暂无该课程大纲";
+      const gradingText = "平时成绩：暂无；作业/项目：暂无；期中/期末：暂无。";
+      const prerequisiteText = "前置课程：无";
 
       document.getElementById("courseCodeVal").textContent = code || "—";
       document.getElementById("courseNameVal").textContent = name || "—";
       document.getElementById("courseOutlineVal").textContent = outline;
+      document.getElementById("courseGradingVal").textContent = gradingText;
+      document.getElementById("coursePrereqVal").textContent = prerequisiteText;
 
       document.getElementById("backBtn").addEventListener("click", () => {
         if (history.length > 1) history.back();

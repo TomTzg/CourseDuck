@@ -6,13 +6,13 @@
     <title>CourseDuck - 选择专业</title>
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
-  <body>
+  <body class="choice-page">
     <div class="container">
       <header class="topbar">
         <div class="brand">
           <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
           <div>
-            <h1>CourseDuck <span class="sub">步骤 2/3：选择专业</span></h1>
+            <h1>CourseDuck <span class="sub">选择专业</span></h1>
           </div>
         </div>
         <div class="nav">
@@ -21,8 +21,8 @@
           <a class="btn" href="./login.html">退出/切换账号</a>
         </div>
       </header>
-
-      <section class="panel centered">
+      <main class="choice-main">
+      <section class="panel centered choice-panel">
           <h2>先确认你的专业</h2>
           <p class="hint">确认后将跳转到职业选择页，再进行课程推荐。</p>
           <p class="hint" id="smeScopeHint" style="display: none">
@@ -47,6 +47,21 @@
               <button class="btn primary confirm-btn" id="confirmMajorBtn" type="submit">确认</button>
             </div>
           </form>
+      </section>
+      </main>
+      <section class="choice-steps" aria-label="流程步骤">
+        <div class="step-item">
+          <div class="step-index">1</div>
+          <div class="step-text">选择学院</div>
+        </div>
+        <div class="step-item active">
+          <div class="step-index">2</div>
+          <div class="step-text">选择专业</div>
+        </div>
+        <div class="step-item">
+          <div class="step-index">3</div>
+          <div class="step-text">选择职业</div>
+        </div>
       </section>
     </div>
 

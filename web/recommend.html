@@ -26,12 +26,12 @@
       <div class="recommend-layout">
         <div class="recommend-left">
           <section class="panel">
-            <h2>技能树展示</h2>
+            <h2>技能展示</h2>
             <p class="hint">
-              技能树用于解释“为什么推荐这些课”。后端可根据学生已修课程/测评结果计算 <span style="font-family:var(--mono)">have/gaps</span>。
+              技能展示用于解释“为什么推荐这些课”，下方以思维导图形式展示职业与技能组关系。
               本页预留接口：<span style="font-family:var(--mono)">GET /api/skill-tree</span>、<span style="font-family:var(--mono)">POST /api/recommendations</span>
             </p>
-            <div class="tree" id="tree"></div>
+            <div id="tree"></div>
           </section>
 
           <section class="panel">
@@ -375,17 +375,19 @@
         }
       })();
 
-      function nodeHtml(name, required) {
-        const half = Math.max(1, Math.floor(required.length / 2));
-        const have = required.slice(0, half).map((s) => `<span class="pill have">${s}</span>`).join("");
-        const gaps = required.slice(half).map((s) => `<span class="pill gap">${s}</span>`).join("");
-        return `<div class="node"><div class="head"><div style="font-weight:800; font-size:13px">${name}</div><span class="badge warn">存在缺口</span></div><div class="skills">${have}${gaps}</div></div>`;
-      }
-
       function chunks(arr, size) {
         const out = [];
         for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
         return out;
+      }
+
+      function escHtml(text) {
+        return String(text ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
       }
 
       const FOUR_CHOOSE_ONE_CODES = new Set(["ECO2021", "DMS2030", "MIS2051", "MGT2020", "MKT2010"]);
@@ -408,13 +410,13 @@
         const tags = (c.tags || []).map((t) => `<span class="pill have">${t}</span>`).join("");
         const checked = takenSet.has(c.id) ? "checked" : "";
         const hint = c.level === "四选一" ? `<div class="hint" style="margin-top:8px">提示：四选一课程只需选择一门或多门即可。</div>` : "";
-        return `<div class="item"><div class="t"><h3>${c.title}</h3><span class="badge warn">${c.level}</span></div><div class="meta"><div>来源：Student Information System.</div>${hint}<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px">${tags}</div><div class="row" style="margin-top:10px;justify-content:space-between"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-course-id="${c.id}" ${checked} /> 已上过这门课</label><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div></div>`;
+        return `<div class="item"><div class="t"><h3>${c.title}</h3><span class="badge warn">${c.level}</span></div><div class="meta"><div>来源：Student Information System.</div>${hint}<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px">${tags}</div><div class="row" style="margin-top:10px;justify-content:space-between"><label style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-course-id="${c.id}" ${checked} /> 已上过这门课</label><div class="row" style="gap:8px"><button class="btn" type="button" disabled>课程前置：无</button><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div></div></div>`;
       }
 
       function recoHtml(c, i) {
         const pct = 95 - i * 2;
         const takenBadge = takenSet.has(c.id) ? `<span class="badge">已修</span>` : "";
-        return `<div class="item"><div class="t"><h3>${c.title}</h3><div class="row"><span class="badge ok">匹配度 ${pct}%</span>${takenBadge}</div></div><div class="meta"><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div>`;
+        return `<div class="item reco-item"><div class="t"><h3>${c.title}</h3><div class="reco-badges"><span class="badge ok">匹配度 ${pct}%</span>${takenBadge}</div></div><div class="meta"><button class="btn" type="button" data-detail-code="${c.code}">课程详情</button></div></div>`;
       }
 
       function renderTree() {
@@ -423,8 +425,15 @@
           treeEl.innerHTML = `<div class="item"><div class="meta">暂无技能树数据</div></div>`;
           return;
         }
+        const safeCareer = escHtml(profile.careerName || profile.careerId || "目标职业");
         const parts = chunks(s, Math.max(2, Math.ceil(s.length / 3)));
-        treeEl.innerHTML = parts.map((p, i) => nodeHtml(`核心技能组 ${i + 1}`, p)).join("");
+        const groupHtml = parts
+          .map((group, idx) => {
+            const skills = group.map((skill) => `<li>${escHtml(skill)}</li>`).join("");
+            return `<li><span>技能组 ${idx + 1}</span><ul>${skills}</ul></li>`;
+          })
+          .join("");
+        treeEl.innerHTML = `<div class="skill-tree-wrap"><ul class="skill-tree"><li><span>选择的职业：${safeCareer}</span><ul>${groupHtml}</ul></li></ul></div>`;
       }
 
       function renderCourses() {

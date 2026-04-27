@@ -6,13 +6,13 @@
     <title>CourseDuck - 选择职业</title>
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
-  <body>
+  <body class="choice-page">
     <div class="container">
       <header class="topbar">
         <div class="brand">
           <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
           <div>
-            <h1>CourseDuck <span class="sub">步骤 3/3：选择职业</span></h1>
+            <h1>CourseDuck <span class="sub">选择职业</span></h1>
           </div>
         </div>
         <div class="nav">
@@ -21,8 +21,8 @@
           <a class="btn danger" href="./login.html">退出/切换账号</a>
         </div>
       </header>
-
-      <section class="panel centered">
+      <main class="choice-main">
+      <section class="panel centered choice-panel">
           <h2>确认目标职业</h2>
           <p class="hint">先选择职业类别，再选择该类别下的具体专业/岗位方向。</p>
           <div class="field">
@@ -50,8 +50,23 @@
           </form>
           <div class="item" style="margin-top:12px;">
           <h2>提示</h2>
-          <p class="hint">确认职业后将直接跳转到推荐页，展示课程搜索、技能树和推荐结果。</p>
+          <p class="hint">职业类别和具体专业/岗位的数据来源: boss直聘。</p>
           </div>
+      </section>
+      </main>
+      <section class="choice-steps" aria-label="流程步骤">
+        <div class="step-item">
+          <div class="step-index">1</div>
+          <div class="step-text">选择学院</div>
+        </div>
+        <div class="step-item">
+          <div class="step-index">2</div>
+          <div class="step-text">选择专业</div>
+        </div>
+        <div class="step-item active">
+          <div class="step-index">3</div>
+          <div class="step-text">选择职业</div>
+        </div>
       </section>
     </div>
 
@@ -217,10 +232,15 @@
           toast("请选择具体专业/岗位后再进入课程推荐页。");
           return;
         }
+        const selectedCareerName =
+          careerSel.options && careerSel.selectedIndex >= 0
+            ? (careerSel.options[careerSel.selectedIndex].text || "").trim()
+            : "";
         writeProfile({
           ...(readProfile() || {}),
           majorId,
           careerId: careerSel.value,
+          careerName: selectedCareerName || careerSel.value,
           careerCategoryId: careerCategorySel.value,
         });
         careerIdHidden.value = careerSel.value;

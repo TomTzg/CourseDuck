@@ -7,76 +7,69 @@
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
   <body>
-    <div class="container">
-      <header class="topbar">
+    <div class="login-shell">
+      <section class="login-hero panel">
         <div class="brand">
           <img class="logo-img" src="./assets/logo.png" alt="CourseDuck Logo" />
           <div>
             <h1>CourseDuck <span class="sub">课程推荐原型机</span></h1>
           </div>
         </div>
-        <div class="nav">
-          <span class="chip">仅原型：接口已预留</span>
-          <a class="btn" href="./school.html" title="跳过登录（原型）">进入原型</a>
+        <div class="hero-copy">
+          <img class="hero-center-logo" src="./assets/logo.png" alt="选课鸭 Logo" />
+          <h2>Welcome to<br />选课鸭</h2>
+          <p class="hint">校园课程推荐平台登录入口</p>
         </div>
-      </header>
+        <div class="hero-meta">
+          <span class="chip">仅原型：接口已预留</span>
+        </div>
+      </section>
 
-      <section class="panel centered">
-          <h2>校园邮箱登录</h2>
+      <section class="login-form-wrap panel">
+        <div class="login-form-inner">
+          <div class="login-head">
+            <h2>登录</h2>
+            <a class="login-home" href="./school.html" title="跳过登录（原型）">首页</a>
+          </div>
           <p class="hint">
-            目标：确保只有本校学生可使用。仅限cuhk学生登录，数据加密保障。
-            该页面已预留登录接口：<span style="font-family:var(--mono)">POST /api/auth/campus-email/login</span>
+            仅支持校园账号登录，接口已预留：
+            <span style="font-family:var(--mono)">POST /api/auth/campus-email/login</span>
           </p>
 
-          <form id="loginForm">
-            <div class="two">
-              <div class="field">
-                <label for="studentId">学号</label>
-                <div class="row" style="flex-wrap:nowrap">
-                  <input class="input" id="studentId" name="studentId" type="text" placeholder="请输入学号" autocomplete="username" required />
-                  <span class="chip" style="white-space:nowrap">@link.edu.cn</span>
-                </div>
-              </div>
-              <div class="field">
-                <label for="code">验证码（原型占位）</label>
-                <input class="input" id="code" name="code" type="text" placeholder="123456" inputmode="numeric" minlength="4" maxlength="8" required />
+          <form id="loginForm" class="login-form">
+            <div class="field">
+              <label for="studentId">学号</label>
+              <div class="row login-email-row">
+                <input class="input" id="studentId" name="studentId" type="text" placeholder="请输入学号" autocomplete="username" required />
+                <span class="chip">@link.edu.cn</span>
               </div>
             </div>
+            <div class="field">
+              <label for="code">验证码</label>
+              <input class="input" id="code" name="code" type="text" placeholder="请输入验证码" inputmode="numeric" minlength="4" maxlength="8" required />
+            </div>
 
-            <div class="row" style="margin-top:12px; justify-content:space-between">
+            <div class="row login-actions">
               <div class="row">
-                <button class="btn" id="sendCodeBtn" type="button">发送验证码（占位）</button>
+                <button class="btn" id="sendCodeBtn" type="button">发送验证码</button>
                 <span class="chip" id="sendHint">未发送</span>
               </div>
-              <div class="row">
-                <button class="btn primary" id="loginBtn" type="submit">登录</button>
-              </div>
+              <a href="#" class="login-forgot">忘记密码</a>
             </div>
 
-            <div class="row policy-links" style="margin-top:10px; justify-content:flex-end">
+            <button class="btn primary login-submit" id="loginBtn" type="submit">登 录</button>
+
+            <div class="row policy-links login-policy">
+              <span>登录即表示同意</span>
               <a href="#" id="agreementBtn">用户协议</a>
               <a href="#" id="privacyBtn">隐私政策</a>
             </div>
           </form>
-
-          <div class="kpi">
-            <div class="card">
-              <div class="v">第一步</div>
-              <div class="k">校园邮箱登录</div>
-            </div>
-            <div class="card">
-              <div class="v">第二步</div>
-              <div class="k">学院与专业/职业</div>
-            </div>
-            <div class="card">
-              <div class="v">第三步</div>
-              <div class="k">课程推荐展示</div>
-            </div>
-          </div>
+        </div>
       </section>
-
-      <div class="footer">CourseDuck Prototype · UI/接口占位可直接对接后端</div>
     </div>
+
+    <div class="footer">CourseDuck Prototype · UI/接口占位可直接对接后端</div>
     <div class="modal-overlay" id="policyModalOverlay" aria-hidden="true">
       <div class="modal" role="dialog" aria-modal="true" aria-labelledby="policyModalTitle">
         <div class="modal-header">
