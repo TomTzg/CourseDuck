@@ -6,7 +6,7 @@
     <title>CourseDuck - 推荐</title>
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
-  <body>
+  <body class="recommend-page">
     <div class="container">
       <header class="topbar">
         <div class="brand">
@@ -25,13 +25,16 @@
 
       <div class="recommend-layout">
         <div class="recommend-left">
-          <section class="panel">
+          <section class="panel skill-display-panel">
             <h2>技能展示</h2>
             <p class="hint">
               技能展示用于解释“为什么推荐这些课”，下方以思维导图形式展示职业与技能组关系。
               本页预留接口：<span style="font-family:var(--mono)">GET /api/skill-tree</span>、<span style="font-family:var(--mono)">POST /api/recommendations</span>
             </p>
             <div id="tree"></div>
+            <div class="row skill-report-action">
+              <button class="btn" id="skillReportBtn" type="button">技能报告</button>
+            </div>
           </section>
 
           <section class="panel">
@@ -53,6 +56,22 @@
       </div>
 
       <div class="footer">建议：后端接入后，把推荐结果落库，支持“收藏/反馈/不喜欢/原因”闭环优化</div>
+      <div class="footer">数据更新时间：2026/04/27</div>
+    </div>
+    <div class="modal-overlay" id="skillReportModalOverlay" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="skillReportModalTitle">
+        <div class="modal-header">
+          <h3 class="modal-title" id="skillReportModalTitle">技能报告</h3>
+          <button class="btn" type="button" id="skillReportCloseTop">关闭</button>
+        </div>
+        <div class="modal-body">
+          <p style="margin:0 0 8px">数据来源：boss直聘</p>
+          <p style="margin:0">技能树分析：暂无（会在后续版本中同步更新， 跟据已修课程显示已掌握的技能以及技能缺口）</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn primary" type="button" id="skillReportCloseBottom">我知道了</button>
+        </div>
+      </div>
     </div>
 
     <script src="./assets/course-catalog.js"></script>
@@ -365,6 +384,10 @@
       const recoList = $("#recoList");
       const reqMeta = $("#reqMeta");
       const regenBtn = $("#regenBtn");
+      const skillReportBtn = $("#skillReportBtn");
+      const skillReportModalOverlay = $("#skillReportModalOverlay");
+      const skillReportCloseTop = $("#skillReportCloseTop");
+      const skillReportCloseBottom = $("#skillReportCloseBottom");
       const takenKey = `courseduck.taken.${profile.majorId || "na"}.${profile.careerId || "na"}`;
       const takenSet = (() => {
         try {
@@ -444,6 +467,14 @@
         reqMeta.textContent = `requestId: local_${Date.now()}`;
         recoList.innerHTML = allCourses.slice(0, 8).map(recoHtml).join("") || `<div class="item"><div class="meta">暂无推荐</div></div>`;
       }
+      function openSkillReportModal() {
+        skillReportModalOverlay.classList.add("show");
+        skillReportModalOverlay.setAttribute("aria-hidden", "false");
+      }
+      function closeSkillReportModal() {
+        skillReportModalOverlay.classList.remove("show");
+        skillReportModalOverlay.setAttribute("aria-hidden", "true");
+      }
 
       courseListEl.addEventListener("change", (e) => {
         const el = e.target.closest("input[type='checkbox'][data-course-id]");
@@ -461,6 +492,12 @@
         window.location.href = `./course-detail.html?code=${encodeURIComponent(code)}`;
       });
       regenBtn.addEventListener("click", () => renderReco());
+      skillReportBtn.addEventListener("click", openSkillReportModal);
+      skillReportCloseTop.addEventListener("click", closeSkillReportModal);
+      skillReportCloseBottom.addEventListener("click", closeSkillReportModal);
+      skillReportModalOverlay.addEventListener("click", (e) => {
+        if (e.target === skillReportModalOverlay) closeSkillReportModal();
+      });
 
       renderTree();
       renderCourses();

@@ -507,6 +507,59 @@ select option{
   flex-shrink:0;
 }
 
+.skill-display-panel{
+  position:relative;
+  padding-bottom:58px;
+}
+
+.skill-report-action{
+  position:absolute;
+  right:16px;
+  bottom:14px;
+}
+
+.recommend-page .topbar .brand h1{
+  font-size:18px;
+}
+
+.recommend-page .topbar .brand .sub{
+  font-size:13px;
+}
+
+.recommend-page .panel h2{
+  font-size:18px;
+}
+
+.recommend-page .panel .hint{
+  font-size:14px;
+  line-height:1.6;
+}
+
+.recommend-page .chip{
+  font-size:13px;
+}
+
+.recommend-page .item h3{
+  font-size:15px;
+}
+
+.recommend-page .item .meta{
+  font-size:13px;
+  line-height:1.55;
+}
+
+.recommend-page .badge{
+  font-size:12px;
+}
+
+.recommend-page .btn{
+  font-size:14px;
+}
+
+.recommend-page .pill{
+  font-size:12px;
+}
+
 .toast{
   position:fixed;
   right:18px;
