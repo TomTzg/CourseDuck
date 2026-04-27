@@ -46,6 +46,9 @@ npx serve -l 5173
 - `GET /api/skill-tree?careerId=...`z
 
 
+### 后端数据
+- 课程.docx
+
 <!-- ### push命令
 1. 看改了什么
 cd <file location>
