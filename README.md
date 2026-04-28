@@ -68,3 +68,6 @@ npx serve -l 5173
 
 - 根目录 `index.html` 可作为入口（跳转至 `web/login.html`）
 - 所有页面资源使用相对路径，适合静态部署
+
+## 课程信息补充
+- `课程.docx`
